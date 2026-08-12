@@ -17,6 +17,10 @@
   <img src="https://img.shields.io/badge/license-MIT-111111?style=flat-square" alt="MIT license">
 </p>
 
+<p align="center">
+  <strong>English</strong> | <a href="README.zh-CN.md">简体中文</a>
+</p>
+
 > [!IMPORTANT]
 > **Panda is a derivative project based on [Ponytail](https://github.com/DietrichGebert/ponytail) by Dietrich Gebert.**
 > It was created by studying and adapting Ponytail under the MIT License. Dietrich Gebert and the Ponytail project do not maintain or endorse this fork.
