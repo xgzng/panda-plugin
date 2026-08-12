@@ -56,7 +56,7 @@ function writeHookOutput(event, mode, context = '') {
     return;
   }
   if (isCodex) {
-    const output = { systemMessage: `PONYTAIL:${mode.toUpperCase()}` };
+    const output = { systemMessage: `PANDA:${mode.toUpperCase()}` };
     if (context) {
       output.hookSpecificOutput = {
         hookEventName: event,

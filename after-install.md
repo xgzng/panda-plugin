@@ -1,22 +1,22 @@
-# Ponytail for Hermes installed
+# Panda for Hermes installed
 
 Enable it if you did not install with `--enable`:
 
 ```bash
-hermes plugins enable ponytail
+hermes plugins enable panda
 ```
 
 Restart Hermes or the gateway after enabling.
 
-In shared gateways, restrict `/ponytail` to trusted users with Hermes slash-command access controls; runtime mode is process-local.
+In shared gateways, restrict `/panda` to trusted users with Hermes slash-command access controls; runtime mode is process-local.
 
 Commands:
 
-- `/ponytail [lite|full|ultra|off]`
-- `/ponytail-review [target]`
-- `/ponytail-audit [target]`
-- `/ponytail-debt`
-- `/ponytail-gain`
-- `/ponytail-help`
+- `/panda [lite|full|ultra|off]`
+- `/panda-review [target]`
+- `/panda-audit [target]`
+- `/panda-debt`
+- `/panda-gain`
+- `/panda-help`
 
-Bundled skills are available as `ponytail:ponytail`, `ponytail:ponytail-review`, `ponytail:ponytail-audit`, `ponytail:ponytail-debt`, `ponytail:ponytail-gain`, and `ponytail:ponytail-help`.
+Bundled skills are available as `panda:panda`, `panda:panda-review`, `panda:panda-audit`, `panda:panda-debt`, `panda:panda-gain`, and `panda:panda-help`.

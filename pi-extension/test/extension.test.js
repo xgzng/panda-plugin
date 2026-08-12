@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import test from "node:test";
 
-import ponytailExtension from "../index.js";
+import pandaExtension from "../index.js";
 
 function createPiHarness() {
   const events = new Map();
@@ -27,7 +27,7 @@ function createPiHarness() {
     },
   };
 
-  ponytailExtension(pi);
+  pandaExtension(pi);
   return { events, commands, appendedEntries, sentUserMessages };
 }
 
@@ -41,11 +41,13 @@ function createCommandContext(overrides = {}) {
 }
 
 function withTempConfig(fn) {
-  const tempConfigHome = mkdtempSync(join(tmpdir(), "ponytail-test-"));
+  const tempConfigHome = mkdtempSync(join(tmpdir(), "panda-test-"));
   const previousXdg = process.env.XDG_CONFIG_HOME;
   const previousHide = process.env.PONYTAIL_HIDE_STATUS;
+  const previousPandaHide = process.env.PANDA_HIDE_STATUS;
   process.env.XDG_CONFIG_HOME = tempConfigHome;
   delete process.env.PONYTAIL_HIDE_STATUS;
+  delete process.env.PANDA_HIDE_STATUS;
 
   return Promise.resolve()
     .then(fn)
@@ -54,22 +56,24 @@ function withTempConfig(fn) {
       else process.env.XDG_CONFIG_HOME = previousXdg;
       if (previousHide === undefined) delete process.env.PONYTAIL_HIDE_STATUS;
       else process.env.PONYTAIL_HIDE_STATUS = previousHide;
+      if (previousPandaHide === undefined) delete process.env.PANDA_HIDE_STATUS;
+      else process.env.PANDA_HIDE_STATUS = previousPandaHide;
       rmSync(tempConfigHome, { recursive: true, force: true });
     });
 }
 
-test("extension registers Ponytail commands", () => {
+test("extension registers Panda commands", () => {
   const { commands } = createPiHarness();
 
-  assert.deepEqual([...commands.keys()].sort(), ["ponytail", "ponytail-audit", "ponytail-debt", "ponytail-gain", "ponytail-help", "ponytail-review"]);
+  assert.deepEqual([...commands.keys()].sort(), ["panda", "panda-audit", "panda-debt", "panda-gain", "panda-help", "panda-review"]);
 });
 
-test("/ponytail updates session mode and injects instructions", async () => withTempConfig(async () => {
+test("/panda updates session mode and injects instructions", async () => withTempConfig(async () => {
   const { commands, events, appendedEntries } = createPiHarness();
   const ctx = createCommandContext();
 
   await events.get("session_start")({ reason: "startup" }, ctx);
-  await commands.get("ponytail").handler("ultra", ctx);
+  await commands.get("panda").handler("ultra", ctx);
 
   assert.deepEqual(appendedEntries.at(-1), {
     customType: "ponytail-mode",
@@ -77,7 +81,7 @@ test("/ponytail updates session mode and injects instructions", async () => with
   });
 
   const result = await events.get("before_agent_start")({ systemPrompt: "BASE" }, ctx);
-  assert.ok(result.systemPrompt.includes("PONYTAIL MODE ACTIVE"));
+  assert.ok(result.systemPrompt.includes("PANDA MODE ACTIVE"));
   assert.ok(result.systemPrompt.includes("ultra"));
 }));
 
@@ -89,19 +93,19 @@ test("before_agent_start guards missing event and missing systemPrompt (#439, #4
   // #439: a null/undefined event must not crash, and still injects the ruleset.
   for (const bad of [undefined, null]) {
     const r = await events.get("before_agent_start")(bad, ctx);
-    assert.ok(r.systemPrompt.includes("PONYTAIL MODE ACTIVE"));
+    assert.ok(r.systemPrompt.includes("PANDA MODE ACTIVE"));
     assert.ok(!r.systemPrompt.includes("undefined"), "must not contain the literal 'undefined'");
   }
 
   // #440: an event without a systemPrompt must not prepend the literal "undefined".
   const empty = await events.get("before_agent_start")({}, ctx);
-  assert.ok(empty.systemPrompt.includes("PONYTAIL MODE ACTIVE"));
+  assert.ok(empty.systemPrompt.includes("PANDA MODE ACTIVE"));
   assert.ok(!empty.systemPrompt.startsWith("undefined"), "must not start with 'undefined'");
 
   // A real base prompt is still preserved and prepended.
   const withBase = await events.get("before_agent_start")({ systemPrompt: "BASE" }, ctx);
   assert.ok(withBase.systemPrompt.startsWith("BASE\n\n"));
-  assert.ok(withBase.systemPrompt.includes("PONYTAIL MODE ACTIVE"));
+  assert.ok(withBase.systemPrompt.includes("PANDA MODE ACTIVE"));
 }));
 
 test("session_start restores latest persisted mode", async () => withTempConfig(async () => {
@@ -124,18 +128,18 @@ test("skill alias commands delegate to Pi skill commands", async () => {
   const { commands, sentUserMessages } = createPiHarness();
   const ctx = createCommandContext();
 
-  await commands.get("ponytail-review").handler("", ctx);
-  await commands.get("ponytail-audit").handler("", ctx);
-  await commands.get("ponytail-debt").handler("", ctx);
-  await commands.get("ponytail-gain").handler("", ctx);
-  await commands.get("ponytail-help").handler("", ctx);
+  await commands.get("panda-review").handler("", ctx);
+  await commands.get("panda-audit").handler("", ctx);
+  await commands.get("panda-debt").handler("", ctx);
+  await commands.get("panda-gain").handler("", ctx);
+  await commands.get("panda-help").handler("", ctx);
 
   assert.deepEqual(sentUserMessages.map((entry) => entry.text), [
-    "/skill:ponytail-review",
-    "/skill:ponytail-audit",
-    "/skill:ponytail-debt",
-    "/skill:ponytail-gain",
-    "/skill:ponytail-help",
+    "/skill:panda-review",
+    "/skill:panda-audit",
+    "/skill:panda-debt",
+    "/skill:panda-gain",
+    "/skill:panda-help",
   ]);
 });
 
@@ -144,7 +148,7 @@ test("normal mode disables persistent instructions", async () => withTempConfig(
   const ctx = createCommandContext();
 
   await events.get("session_start")({ reason: "startup" }, ctx);
-  await commands.get("ponytail").handler("ultra", ctx);
+  await commands.get("panda").handler("ultra", ctx);
   await events.get("input")({ text: "normal mode", source: "interactive" }, ctx);
 
   const disabled = await events.get("before_agent_start")({ systemPrompt: "BASE" }, ctx);
@@ -156,11 +160,11 @@ test("a request mentioning normal mode stays active", async () => withTempConfig
   const ctx = createCommandContext();
 
   await events.get("session_start")({ reason: "startup" }, ctx);
-  await commands.get("ponytail").handler("ultra", ctx);
+  await commands.get("panda").handler("ultra", ctx);
   await events.get("input")({ text: "add a normal mode toggle next to dark mode", source: "interactive" }, ctx);
 
   const result = await events.get("before_agent_start")({ systemPrompt: "BASE" }, ctx);
-  assert.match(result.systemPrompt, /PONYTAIL MODE ACTIVE/);
+  assert.match(result.systemPrompt, /PANDA MODE ACTIVE/);
 }));
 
 test("status bar renders the mode and flips active on agent_start", async () => withTempConfig(async () => {
@@ -174,7 +178,7 @@ test("status bar renders the mode and flips active on agent_start", async () => 
   await events.get("session_start")({ reason: "resume" }, ctx);
   await events.get("agent_start")({}, ctx);
 
-  assert.equal(statusWrites.at(-2).key, "ponytail");
+  assert.equal(statusWrites.at(-2).key, "panda");
   assert.match(statusWrites.at(-2).text, /○.*ULTRA/);
   assert.match(statusWrites.at(-1).text, /●.*ULTRA/);
 }));
@@ -193,8 +197,8 @@ test("status bar stays silent when ui lacks a theme", async () => withTempConfig
   assert.deepEqual(calls, []);
 }));
 
-test("PONYTAIL_HIDE_STATUS hides the indicator but keeps ponytail active (#324)", async () => withTempConfig(async () => {
-  process.env.PONYTAIL_HIDE_STATUS = "1";
+test("PANDA_HIDE_STATUS hides the indicator but keeps panda active (#324)", async () => withTempConfig(async () => {
+  process.env.PANDA_HIDE_STATUS = "1";
   const { events } = createPiHarness();
   const statusWrites = [];
   const ctx = createCommandContext({
@@ -207,12 +211,12 @@ test("PONYTAIL_HIDE_STATUS hides the indicator but keeps ponytail active (#324)"
   const injected = await events.get("before_agent_start")({ systemPrompt: "BASE" }, ctx);
 
   assert.deepEqual(statusWrites, [], "status bar must not be drawn when hidden");
-  assert.match(injected.systemPrompt, /PONYTAIL MODE ACTIVE/, "ruleset must still inject while status is hidden");
+  assert.match(injected.systemPrompt, /PANDA MODE ACTIVE/, "ruleset must still inject while status is hidden");
 }));
 
-test("config.hideStatus hides the indicator but keeps ponytail active (#324)", async () => withTempConfig(async () => {
-  mkdirSync(join(process.env.XDG_CONFIG_HOME, "ponytail"), { recursive: true });
-  writeFileSync(join(process.env.XDG_CONFIG_HOME, "ponytail", "config.json"), JSON.stringify({ hideStatus: true }));
+test("config.hideStatus hides the indicator but keeps panda active (#324)", async () => withTempConfig(async () => {
+  mkdirSync(join(process.env.XDG_CONFIG_HOME, "panda"), { recursive: true });
+  writeFileSync(join(process.env.XDG_CONFIG_HOME, "panda", "config.json"), JSON.stringify({ hideStatus: true }));
   const { events } = createPiHarness();
   const statusWrites = [];
   const ctx = createCommandContext({
@@ -224,7 +228,7 @@ test("config.hideStatus hides the indicator but keeps ponytail active (#324)", a
   const injected = await events.get("before_agent_start")({ systemPrompt: "BASE" }, ctx);
 
   assert.deepEqual(statusWrites, [], "config.hideStatus must suppress the status bar");
-  assert.match(injected.systemPrompt, /PONYTAIL MODE ACTIVE/, "ruleset must still inject while status is hidden");
+  assert.match(injected.systemPrompt, /PANDA MODE ACTIVE/, "ruleset must still inject while status is hidden");
 }));
 
 test("PONYTAIL_HIDE_STATUS=0 does not hide the indicator", async () => withTempConfig(async () => {

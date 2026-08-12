@@ -13,17 +13,17 @@ function stripFrontmatter(text) {
 }
 
 const agents = read('AGENTS.md');
-const canonical = agents.replace(/\n\n\(Yes, this file also applies[\s\S]*?\)$/, '').trim();
+const canonical = agents.replace(/\n\n\(Yes, this file also applies[^\n]*\)/, '').trim();
 
 // Compact copies: same body as AGENTS.md, host-specific frontmatter stripped.
 const copies = [
-  ['.cursor/rules/ponytail.mdc', stripFrontmatter],
-  ['.windsurf/rules/ponytail.md', text => text.trim()],
-  ['.clinerules/ponytail.md', text => text.trim()],
-  ['.agents/rules/ponytail.md', text => text.trim()],
-  ['.qoder/rules/ponytail.md', text => text.trim()],
+  ['.cursor/rules/panda.mdc', stripFrontmatter],
+  ['.windsurf/rules/panda.md', text => text.trim()],
+  ['.clinerules/panda.md', text => text.trim()],
+  ['.agents/rules/panda.md', text => text.trim()],
+  ['.qoder/rules/panda.md', text => text.trim()],
   ['.github/copilot-instructions.md', text => text.trim()],
-  ['.kiro/steering/ponytail.md', stripFrontmatter],
+  ['.kiro/steering/panda.md', stripFrontmatter],
 ];
 
 let failed = false;
@@ -57,8 +57,8 @@ const INVARIANTS = [
   'Lazy code without its check is unfinished', // one-check promoted to headline
 ];
 
-const skill = read('skills/ponytail/SKILL.md');
-const sources = [['skills/ponytail/SKILL.md', skill], ['AGENTS.md', agents]];
+const skill = read('skills/panda/SKILL.md');
+const sources = [['skills/panda/SKILL.md', skill], ['AGENTS.md', agents]];
 for (const phrase of INVARIANTS) {
   for (const [label, text] of sources) {
     if (!text.includes(phrase)) {

@@ -40,21 +40,21 @@ test('system.transform injects the ruleset at the default mode (full)', async ()
   const hooks = await loadPlugin({});
   const system = await transform(hooks);
   assert.equal(system.length, 1);
-  assert.match(system[0], /PONYTAIL MODE ACTIVE — level: full/);
+  assert.match(system[0], /PANDA MODE ACTIVE — level: full/);
   assert.match(system[0], /lazy senior developer/);
 });
 
-test('command.execute.before persists /ponytail ultra, transform follows it', async () => {
+test('command.execute.before persists /panda ultra, transform follows it', async () => {
   const hooks = await loadPlugin({});
-  await hooks['command.execute.before']({ command: 'ponytail', arguments: 'ultra', sessionID: 's' });
+  await hooks['command.execute.before']({ command: 'panda', arguments: 'ultra', sessionID: 's' });
   assert.equal(fs.readFileSync(statePath, 'utf8'), 'ultra');
   const system = await transform(hooks);
-  assert.match(system[0], /PONYTAIL MODE ACTIVE — level: ultra/);
+  assert.match(system[0], /PANDA MODE ACTIVE — level: ultra/);
 });
 
-test('/ponytail off persists off and transform injects nothing', async () => {
+test('/panda off persists off and transform injects nothing', async () => {
   const hooks = await loadPlugin({});
-  await hooks['command.execute.before']({ command: 'ponytail', arguments: 'off', sessionID: 's' });
+  await hooks['command.execute.before']({ command: 'panda', arguments: 'off', sessionID: 's' });
   assert.equal(fs.readFileSync(statePath, 'utf8'), 'off');
   const system = await transform(hooks);
   assert.deepEqual(system, []);
@@ -67,13 +67,13 @@ test('system.transform merges into existing system entry (Qwen compat, #296)', a
   await hooks['experimental.chat.system.transform']({ model: {} }, output);
   assert.equal(output.system.length, 1, 'must not add a second system entry');
   assert.match(output.system[0], /You are a helpful assistant/);
-  assert.match(output.system[0], /PONYTAIL MODE ACTIVE/);
+  assert.match(output.system[0], /PANDA MODE ACTIVE/);
 });
 
-test('unsupported /ponytail arguments do not reset the current mode', async () => {
+test('unsupported /panda arguments do not reset the current mode', async () => {
   const hooks = await loadPlugin({});
   fs.writeFileSync(statePath, 'ultra');
-  await hooks['command.execute.before']({ command: 'ponytail', arguments: 'status', sessionID: 's' });
+  await hooks['command.execute.before']({ command: 'panda', arguments: 'status', sessionID: 's' });
   assert.equal(fs.readFileSync(statePath, 'utf8'), 'ultra');
 });
 

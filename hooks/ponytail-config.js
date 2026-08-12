@@ -1,12 +1,12 @@
 #!/usr/bin/env node
-// ponytail — shared configuration resolver
+// Panda shared configuration resolver. Legacy Ponytail names remain readable.
 //
 // Resolution order for default mode:
-//   1. PONYTAIL_DEFAULT_MODE environment variable
+//   1. PANDA_DEFAULT_MODE (then legacy PONYTAIL_DEFAULT_MODE)
 //   2. Config file defaultMode field:
-//      - $XDG_CONFIG_HOME/ponytail/config.json (any platform, if set)
-//      - ~/.config/ponytail/config.json (macOS / Linux fallback)
-//      - %APPDATA%\ponytail\config.json (Windows fallback)
+//      - $XDG_CONFIG_HOME/panda/config.json (any platform, if set)
+//      - ~/.config/panda/config.json (macOS / Linux fallback)
+//      - %APPDATA%\panda\config.json (Windows fallback)
 //   3. 'full'
 
 const fs = require('fs');
@@ -33,13 +33,13 @@ function normalizePersistedMode(mode) {
   return normalizeMode(mode) || normalizeConfigMode(mode);
 }
 
-// "stop ponytail" / "normal mode" turn ponytail off, but only as a standalone
+// "stop panda" / "normal mode" turn Panda off, but only as a standalone
 // command. Matching the phrase anywhere in the message turned it off mid-task
 // for ordinary requests like "add a normal mode toggle" — so require the whole
 // message to be the command, ignoring case and trailing punctuation.
 function isDeactivationCommand(text) {
   const t = String(text || '').trim().toLowerCase().replace(/[.!?\s]+$/, '');
-  return t === 'stop ponytail' || t === 'normal mode';
+  return t === 'stop panda' || t === 'stop ponytail' || t === 'normal mode';
 }
 
 // ponytail: only embed the plugin install path in a statusline shell command when
@@ -53,15 +53,15 @@ function isShellSafe(p) {
 
 function getConfigDir() {
   if (process.env.XDG_CONFIG_HOME) {
-    return path.join(process.env.XDG_CONFIG_HOME, 'ponytail');
+    return path.join(process.env.XDG_CONFIG_HOME, 'panda');
   }
   if (process.platform === 'win32') {
     return path.join(
       process.env.APPDATA || path.join(os.homedir(), 'AppData', 'Roaming'),
-      'ponytail'
+      'panda'
     );
   }
-  return path.join(os.homedir(), '.config', 'ponytail');
+  return path.join(os.homedir(), '.config', 'panda');
 }
 
 function getConfigPath() {
@@ -75,7 +75,7 @@ function getClaudeDir() {
 
 function getDefaultMode() {
   // 1. Environment variable (highest priority)
-  const envMode = process.env.PONYTAIL_DEFAULT_MODE;
+  const envMode = process.env.PANDA_DEFAULT_MODE || process.env.PONYTAIL_DEFAULT_MODE;
   // ponytail: a default must be a runtime level (off/lite/full/ultra); review is
   // a session-only mode, never a valid default (#377). Validate against
   // RUNTIME_MODES so a stray env var or config can't make review the default.
@@ -103,7 +103,9 @@ function getDefaultMode() {
 // PONYTAIL_QUIET_STARTUP=1 (or any truthy value; 0/false/empty mean "show it")
 // takes precedence, else config.quietStartup === true. Mirrors getHideStatus.
 function getQuietStartup() {
-  const env = process.env.PONYTAIL_QUIET_STARTUP;
+  const env = process.env.PANDA_QUIET_STARTUP !== undefined
+    ? process.env.PANDA_QUIET_STARTUP
+    : process.env.PONYTAIL_QUIET_STARTUP;
   if (env !== undefined) {
     const v = env.trim().toLowerCase();
     return v !== '' && v !== '0' && v !== 'false' && v !== 'no';
@@ -120,7 +122,9 @@ function getQuietStartup() {
 // PONYTAIL_HIDE_STATUS=1 (or any truthy value; 0/false/empty mean "don't hide")
 // takes precedence, else config.hideStatus === true.
 function getHideStatus() {
-  const env = process.env.PONYTAIL_HIDE_STATUS;
+  const env = process.env.PANDA_HIDE_STATUS !== undefined
+    ? process.env.PANDA_HIDE_STATUS
+    : process.env.PONYTAIL_HIDE_STATUS;
   if (env !== undefined) {
     const v = env.trim().toLowerCase();
     return v !== '' && v !== '0' && v !== 'false' && v !== 'no';

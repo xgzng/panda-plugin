@@ -87,13 +87,13 @@ export default async ({ client } = {}) => {
     // transform reads the flag the command writes. Good enough; switch to a
     // synchronous store if same-turn switching ever matters.
     'command.execute.before': async (input) => {
-      if (!input || input.command !== 'ponytail') return;
+      if (!input || input.command !== 'panda') return;
       // `off` is persisted like any mode; the transform reads it and stays silent.
       const args = String(input.arguments || '').trim();
       const mode = args ? normalizePersistedMode(args) : getDefaultMode();
       if (!mode) return;
       writeMode(mode);
-      log('info', 'ponytail ' + mode);
+      log('info', 'panda ' + mode);
     },
   };
 };

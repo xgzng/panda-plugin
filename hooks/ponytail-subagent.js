@@ -5,7 +5,8 @@
 // without this every Task-spawned agent runs ponytail-unaware (issue #252).
 // When ponytail mode is active, inject the same ruleset into each subagent.
 //
-// Scoping (opt-in, issue #506): set PONYTAIL_SUBAGENT_MATCHER to a regex and
+// Scoping (opt-in): set PANDA_SUBAGENT_MATCHER (or legacy
+// PONYTAIL_SUBAGENT_MATCHER) to a regex and
 // the ruleset is injected only into subagents whose agent_type matches. The
 // regex is unanchored and case-insensitive — "explore|general" matches either,
 // "^general$" is exact. Unset means inject into every subagent, as before.
@@ -31,8 +32,9 @@ function inject() {
 // A bad regex must never crash the hook; treat it as "no matcher" and inject.
 let matcherRe = null;
 try {
-  if (process.env.PONYTAIL_SUBAGENT_MATCHER) {
-    matcherRe = new RegExp(process.env.PONYTAIL_SUBAGENT_MATCHER, 'i');
+  const matcher = process.env.PANDA_SUBAGENT_MATCHER || process.env.PONYTAIL_SUBAGENT_MATCHER;
+  if (matcher) {
+    matcherRe = new RegExp(matcher, 'i');
   }
 } catch (e) {
   matcherRe = null;

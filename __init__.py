@@ -1,4 +1,4 @@
-"""Hermes plugin for Ponytail."""
+"""Hermes plugin for Panda, based on Ponytail."""
 
 from __future__ import annotations
 
@@ -12,17 +12,18 @@ DEFAULT_MODE = "full"
 RUNTIME_MODES = {"off", "lite", "full", "ultra"}
 CONFIG_MODES = RUNTIME_MODES | {"review"}
 SKILL_COMMANDS = {
-    "ponytail-review": "Review the current diff or provided target for over-engineering.",
-    "ponytail-audit": "Audit the repo for over-engineering and deletion opportunities.",
-    "ponytail-debt": "List every deliberate `ponytail:` shortcut and its upgrade path.",
-    "ponytail-gain": "Show the measured-impact scoreboard (less code, less cost, more speed).",
-    "ponytail-help": "Show the Ponytail command reference.",
+    "panda-review": "Review the current diff or provided target for over-engineering.",
+    "panda-audit": "Audit the repo for over-engineering and deletion opportunities.",
+    "panda-debt": "List every deliberate `panda:` or legacy `ponytail:` shortcut and its upgrade path.",
+    "panda-gain": "Show the upstream Ponytail benchmark reference.",
+    "panda-help": "Show the Panda command reference.",
 }
 
 ROOT = Path(__file__).resolve().parent
 SKILLS_DIR = ROOT / "skills"
-PONYTAIL_SKILL = SKILLS_DIR / "ponytail" / "SKILL.md"
-REVIEW_SKILL = SKILLS_DIR / "ponytail-review" / "SKILL.md"
+PONYTAIL_SKILL = SKILLS_DIR / "panda" / "SKILL.md"
+REVIEW_SKILL = SKILLS_DIR / "panda-review" / "SKILL.md"
+COMPANY_RULES = ROOT / "rules" / "company-core.md"
 
 _current_mode = None
 
@@ -89,7 +90,7 @@ def _filter_skill_body_for_mode(body: str, mode: str) -> str:
 
 def _fallback_instructions(mode: str) -> str:
     return (
-        f"PONYTAIL MODE ACTIVE — level: {mode}\n\n"
+        f"PANDA MODE ACTIVE — level: {mode}\n\n"
         "You are a lazy senior developer. Lazy means efficient, not careless. "
         "The best code is the code never written.\n\n"
         "Before any code, stop at the first rung that holds: YAGNI, stdlib, "
@@ -102,22 +103,29 @@ def _fallback_instructions(mode: str) -> str:
     )
 
 
+def _company_rules() -> str:
+    try:
+        return COMPANY_RULES.read_text(encoding="utf-8").strip()
+    except OSError:
+        return "Follow current project rules and preserve company safety and quality boundaries."
+
+
 def build_injected_context(mode: str | None = None) -> str:
-    """Return the mode-filtered Ponytail context injected before LLM turns."""
+    """Return the mode-filtered Panda context injected before LLM turns."""
     configured = _normalize_config_mode(mode) or _default_mode()
     if configured == "off":
         return ""
     if configured == "review":
         try:
             body = REVIEW_SKILL.read_text(encoding="utf-8")
-            return f"PONYTAIL MODE ACTIVE — level: review\n\n{_strip_frontmatter(body)}"
+            return f"PANDA MODE ACTIVE — level: review\n\n{_strip_frontmatter(body)}\n\n{_company_rules()}"
         except OSError:
-            return "PONYTAIL MODE ACTIVE — level: review. Review diffs for unnecessary complexity."
+            return f"PANDA MODE ACTIVE — level: review. Review diffs for unnecessary complexity.\n\n{_company_rules()}"
 
     effective = _normalize_runtime_mode(configured) or DEFAULT_MODE
     try:
         body = PONYTAIL_SKILL.read_text(encoding="utf-8")
-        return f"PONYTAIL MODE ACTIVE — level: {effective}\n\n{_filter_skill_body_for_mode(body, effective)}"
+        return f"PANDA MODE ACTIVE — level: {effective}\n\n{_filter_skill_body_for_mode(body, effective)}\n\n{_company_rules()}"
     except OSError:
         return _fallback_instructions(effective)
 
@@ -132,7 +140,7 @@ def _skill_prompt(command: str, args: str = "") -> str:
     tail = args.strip()
     target = f"\n\nUser arguments: {tail}" if tail else ""
     return (
-        f"Load and follow the Hermes plugin skill `ponytail:{command}`. "
+        f"Load and follow the Hermes plugin skill `panda:{command}`. "
         f"{SKILL_COMMANDS[command]}{target}"
     )
 
@@ -169,12 +177,12 @@ def _handle_mode_command(raw_args: str) -> str:
     arg = (raw_args or "").strip().lower()
     if not arg:
         mode = _current_mode or _default_mode()
-        return f"Ponytail mode: {mode}. Use `/ponytail lite|full|ultra|off`."
+        return f"Panda mode: {mode}. Use `/panda lite|full|ultra|off`."
     mode = _normalize_runtime_mode(arg)
     if not mode:
-        return "Usage: /ponytail [lite|full|ultra|off]"
+        return "Usage: /panda [lite|full|ultra|off]"
     _current_mode = mode
-    return f"Ponytail mode set to {mode}."
+    return f"Panda mode set to {mode}."
 
 
 def _make_skill_command_handler(ctx: Any, command: str) -> Callable[[str], str]:
@@ -193,7 +201,7 @@ def _make_skill_command_handler(ctx: Any, command: str) -> Callable[[str], str]:
 
 
 def register(ctx: Any) -> None:
-    """Register Ponytail hooks, skills, and slash commands with Hermes."""
+    """Register Panda hooks, skills, and slash commands with Hermes."""
     for child in sorted(SKILLS_DIR.iterdir() if SKILLS_DIR.exists() else []):
         skill_md = child / "SKILL.md"
         if child.is_dir() and skill_md.exists():
@@ -203,9 +211,9 @@ def register(ctx: Any) -> None:
     ctx.register_hook("pre_gateway_dispatch", rewrite_gateway_command)
 
     ctx.register_command(
-        "ponytail",
+        "panda",
         _handle_mode_command,
-        description="Set Ponytail lazy senior dev mode: lite, full, ultra, or off.",
+        description="Set Panda mode: lite, full, ultra, or off.",
         args_hint="[lite|full|ultra|off]",
     )
     for command, description in SKILL_COMMANDS.items():

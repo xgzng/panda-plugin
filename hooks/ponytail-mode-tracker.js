@@ -17,10 +17,10 @@ function finish() {
     const data = JSON.parse(input.replace(/^\uFEFF/, ''));
     const prompt = (data.prompt || '').trim().toLowerCase();
 
-    // Match /ponytail commands
+    // Match public Panda commands. Legacy Ponytail commands remain accepted.
     let modeSwitched = false;
     let deactivated = false;
-    if (/^[/@$]ponytail/.test(prompt)) {
+    if (/^[/@$](panda|ponytail)/.test(prompt)) {
       const parts = prompt.split(/\s+/);
       const cmd = parts[0].replace(/^[@$]/, '/');
       const arg = parts[1] || '';
@@ -28,9 +28,9 @@ function finish() {
       let mode = null;
       let isReportOnly = false;
 
-      if (cmd === '/ponytail-review' || cmd === '/ponytail:ponytail-review') {
+      if (cmd === '/panda-review' || cmd === '/panda:panda-review' || cmd === '/ponytail-review' || cmd === '/ponytail:ponytail-review') {
         mode = 'review';
-      } else if (cmd === '/ponytail' || cmd === '/ponytail:ponytail') {
+      } else if (cmd === '/panda' || cmd === '/panda:panda' || cmd === '/ponytail' || cmd === '/ponytail:ponytail') {
         // `/ponytail default <mode>` persists the default to config (survives
         // restarts). Plain switches stay session-scoped ("sticks until session
         // end"), so this is the only path that writes config. review is not a
@@ -39,7 +39,7 @@ function finish() {
           const dmode = parts[2];
           if (dmode === 'off' || dmode === 'lite' || dmode === 'full' || dmode === 'ultra') {
             writeDefaultMode(dmode);
-            writeHookOutput('UserPromptSubmit', dmode, 'PONYTAIL DEFAULT SET — new sessions start in ' + dmode + '.');
+            writeHookOutput('UserPromptSubmit', dmode, 'PANDA DEFAULT SET — new sessions start in ' + dmode + '.');
           }
           return; // don't fall through to the session-mode switch
         }
@@ -59,7 +59,7 @@ function finish() {
         writeHookOutput(
           'UserPromptSubmit',
           mode,
-          'PONYTAIL MODE ACTIVE — level: ' + mode,
+          'PANDA MODE ACTIVE — level: ' + mode,
         );
       } else if (mode && mode !== 'off') {
         setMode(mode);
@@ -71,13 +71,13 @@ function finish() {
           writeHookOutput(
             'UserPromptSubmit',
             mode,
-            'PONYTAIL MODE CHANGED — level: ' + mode,
+            'PANDA MODE CHANGED — level: ' + mode,
           );
         }
       } else if (mode === 'off') {
         clearMode();
         deactivated = true;
-        writeHookOutput('UserPromptSubmit', 'off', 'PONYTAIL MODE OFF');
+        writeHookOutput('UserPromptSubmit', 'off', 'PANDA MODE OFF');
       }
     }
 
@@ -85,7 +85,7 @@ function finish() {
     if (!modeSwitched && !deactivated && isDeactivationCommand(prompt)) {
       clearMode();
       deactivated = true;
-      writeHookOutput('UserPromptSubmit', 'off', 'PONYTAIL MODE OFF');
+      writeHookOutput('UserPromptSubmit', 'off', 'PANDA MODE OFF');
     }
 
     // Qoder has no SessionStart event, so UserPromptSubmit does double duty:
@@ -106,7 +106,7 @@ function finish() {
         // ponytail: one JSON per invocation — mode-switch confirmation is
         // folded into the ruleset header so Qoder gets both in one write.
         const header = modeSwitched
-          ? 'PONYTAIL MODE CHANGED — level: ' + currentMode + '\n\n'
+          ? 'PANDA MODE CHANGED — level: ' + currentMode + '\n\n'
           : '';
         writeHookOutput('UserPromptSubmit', currentMode, header + getPonytailInstructions(currentMode));
       }

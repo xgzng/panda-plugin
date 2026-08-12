@@ -1,6 +1,6 @@
 {
-  "name": "ponytail",
+  "name": "panda",
   "version": "4.9.0",
-  "description": "Lazy senior dev mode. Forces the simplest, shortest solution that actually works: YAGNI, stdlib first, no unrequested abstractions.",
+  "description": "Company AI coding guardrails based on Ponytail: reuse first and minimum compliant implementation.",
   "contextFileName": "AGENTS.md"
 }

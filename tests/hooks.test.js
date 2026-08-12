@@ -36,6 +36,10 @@ delete process.env.PLUGIN_DATA;
 delete process.env.COPILOT_PLUGIN_DATA;
 // A leaked subagent matcher would scope the inject-into-every-subagent assertions.
 delete process.env.PONYTAIL_SUBAGENT_MATCHER;
+delete process.env.PANDA_SUBAGENT_MATCHER;
+delete process.env.PANDA_DEFAULT_MODE;
+delete process.env.PANDA_QUIET_STARTUP;
+delete process.env.PANDA_HIDE_STATUS;
 delete process.env.QODER_SESSION_ID;
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ponytail-hooks-'));
@@ -59,13 +63,15 @@ let result = run('ponytail-activate.js', codexEnv);
 assert.equal(result.status, 0, result.stderr);
 assert.equal(fs.readFileSync(codexState, 'utf8'), 'ultra');
 let output = JSON.parse(result.stdout);
-assert.equal(output.systemMessage, 'PONYTAIL:ULTRA');
+assert.equal(output.systemMessage, 'PANDA:ULTRA');
 assert.equal(output.additionalContext, undefined, 'Codex must not emit additionalContext at top level (#573)');
 assert.equal(output.hookSpecificOutput.hookEventName, 'SessionStart');
 assert.match(
   output.hookSpecificOutput.additionalContext,
-  /PONYTAIL MODE ACTIVE — level: ultra/,
+  /PANDA MODE ACTIVE — level: ultra/,
 );
+assert.match(output.hookSpecificOutput.additionalContext, /# Panda company rules/);
+assert.match(output.hookSpecificOutput.additionalContext, /current project's native instructions/);
 
 result = run(
   'ponytail-mode-tracker.js',
@@ -75,7 +81,7 @@ result = run(
 assert.equal(result.status, 0, result.stderr);
 assert.equal(fs.readFileSync(codexState, 'utf8'), 'lite');
 output = JSON.parse(result.stdout);
-assert.equal(output.systemMessage, 'PONYTAIL:LITE');
+assert.equal(output.systemMessage, 'PANDA:LITE');
 
 // Querying bare @ponytail should report the active level ('lite') without resetting it to default ('ultra')
 result = run(
@@ -90,7 +96,7 @@ assert.equal(output.additionalContext, undefined, 'Codex must not emit additiona
 assert.equal(output.hookSpecificOutput.hookEventName, 'UserPromptSubmit');
 assert.match(
   output.hookSpecificOutput.additionalContext,
-  /PONYTAIL MODE ACTIVE — level: lite/,
+  /PANDA MODE ACTIVE — level: lite/,
 );
 
 result = run(
@@ -101,7 +107,7 @@ result = run(
 assert.equal(result.status, 0, result.stderr);
 assert.equal(fs.existsSync(codexState), false);
 output = JSON.parse(result.stdout);
-assert.equal(output.systemMessage, 'PONYTAIL:OFF');
+assert.equal(output.systemMessage, 'PANDA:OFF');
 
 // A request that merely mentions "normal mode" must not deactivate ponytail.
 result = run('ponytail-mode-tracker.js', codexEnv, JSON.stringify({ prompt: '@ponytail lite' }));
@@ -196,7 +202,7 @@ assert.equal(
   'copilot hooks must not write mode state to codex PLUGIN_DATA',
 );
 output = JSON.parse(result.stdout);
-assert.match(output.additionalContext, /PONYTAIL MODE ACTIVE — level: full/);
+assert.match(output.additionalContext, /PANDA MODE ACTIVE — level: full/);
 
 // VS Code Copilot never sets COPILOT_PLUGIN_DATA — it only injects
 // CLAUDE_PLUGIN_ROOT pointed at an agent-plugins/.../.vscode install path
@@ -263,7 +269,7 @@ output = JSON.parse(result.stdout);
 assert.equal(output.hookSpecificOutput.hookEventName, 'SubagentStart');
 assert.match(
   output.hookSpecificOutput.additionalContext,
-  /PONYTAIL MODE ACTIVE — level: full/,
+  /PANDA MODE ACTIVE — level: full/,
 );
 
 // No flag → ponytail off → inject nothing (empty stdout, no failure).
@@ -280,10 +286,11 @@ fs.writeFileSync(path.join(subCodex, '.ponytail-active'), 'full');
 result = run('ponytail-subagent.js', { HOME: subHome, USERPROFILE: subHome, PLUGIN_DATA: subCodex });
 assert.equal(result.status, 0, result.stderr);
 output = JSON.parse(result.stdout);
-assert.equal(output.systemMessage, 'PONYTAIL:FULL');
+assert.equal(output.systemMessage, 'PANDA:FULL');
 assert.equal(output.additionalContext, undefined, 'Codex must not emit additionalContext at top level (#573)');
 assert.equal(output.hookSpecificOutput.hookEventName, 'SubagentStart');
-assert.match(output.hookSpecificOutput.additionalContext, /PONYTAIL MODE ACTIVE — level: full/);
+assert.match(output.hookSpecificOutput.additionalContext, /PANDA MODE ACTIVE — level: full/);
+assert.match(output.hookSpecificOutput.additionalContext, /# Panda company rules/);
 
 // SubagentStart scoping (issue #506): PONYTAIL_SUBAGENT_MATCHER limits the
 // injection to agent types whose name matches the regex. Unset keeps the
@@ -295,6 +302,16 @@ fs.mkdirSync(path.dirname(scopeFlag), { recursive: true });
 fs.writeFileSync(scopeFlag, 'full');
 const scopeEnv = { HOME: scopeHome, USERPROFILE: scopeHome };
 
+// Public Panda matcher takes precedence over the legacy compatibility name.
+result = run(
+  'ponytail-subagent.js',
+  { ...scopeEnv, PANDA_SUBAGENT_MATCHER: '^general$', PONYTAIL_SUBAGENT_MATCHER: '^explore$' },
+  JSON.stringify({ agent_type: 'general' }),
+);
+assert.equal(result.status, 0, result.stderr);
+output = JSON.parse(result.stdout);
+assert.match(output.hookSpecificOutput.additionalContext, /# Panda company rules/);
+
 // Matching agent_type → inject; the match is case-insensitive.
 result = run(
   'ponytail-subagent.js',
@@ -304,7 +321,7 @@ result = run(
 assert.equal(result.status, 0, result.stderr);
 output = JSON.parse(result.stdout);
 assert.equal(output.hookSpecificOutput.hookEventName, 'SubagentStart');
-assert.match(output.hookSpecificOutput.additionalContext, /PONYTAIL MODE ACTIVE — level: full/);
+assert.match(output.hookSpecificOutput.additionalContext, /PANDA MODE ACTIVE — level: full/);
 
 // agent_type the matcher rejects → stay silent.
 result = run(
@@ -333,7 +350,7 @@ result = run(
 );
 assert.equal(result.status, 0, result.stderr);
 output = JSON.parse(result.stdout);
-assert.match(output.hookSpecificOutput.additionalContext, /PONYTAIL MODE ACTIVE — level: full/);
+assert.match(output.hookSpecificOutput.additionalContext, /PANDA MODE ACTIVE — level: full/);
 
 // Invalid regex → must not crash; fall back to injecting everywhere.
 result = run(
@@ -351,7 +368,7 @@ assert.equal(output.hookSpecificOutput.hookEventName, 'SubagentStart');
 result = run('ponytail-subagent.js', scopeEnv, '');
 assert.equal(result.status, 0, result.stderr);
 output = JSON.parse(result.stdout);
-assert.match(output.hookSpecificOutput.additionalContext, /PONYTAIL MODE ACTIVE — level: full/);
+assert.match(output.hookSpecificOutput.additionalContext, /PANDA MODE ACTIVE — level: full/);
 
 // Qoder: no SessionStart event, so UserPromptSubmit does double duty —
 // it activates the default mode on first prompt (writes flag), then injects
@@ -381,7 +398,7 @@ output = JSON.parse(result.stdout);
 assert.equal(output.hookSpecificOutput.hookEventName, 'UserPromptSubmit');
 assert.match(
   output.hookSpecificOutput.additionalContext,
-  /PONYTAIL MODE ACTIVE — level: full/,
+  /PANDA MODE ACTIVE — level: full/,
 );
 
 // /ponytail ultra: mode tracker updates flag and injects ultra ruleset.
@@ -395,7 +412,7 @@ assert.equal(fs.readFileSync(qoderState, 'utf8'), 'ultra');
 output = JSON.parse(result.stdout);
 assert.match(
   output.hookSpecificOutput.additionalContext,
-  /PONYTAIL MODE CHANGED — level: ultra/,
+  /PANDA MODE CHANGED — level: ultra/,
 );
 
 // "stop ponytail": deactivates, clears flag, no ruleset output.
@@ -407,7 +424,7 @@ result = run(
 assert.equal(result.status, 0, result.stderr);
 assert.equal(fs.existsSync(qoderState), false, 'flag must be cleared after stop ponytail');
 output = JSON.parse(result.stdout);
-assert.equal(output.hookSpecificOutput.additionalContext, 'PONYTAIL MODE OFF');
+assert.equal(output.hookSpecificOutput.additionalContext, 'PANDA MODE OFF');
 
 // Subagent injection via PreToolUse (task|Task matcher): when ponytail is
 // active, the subagent hook injects the ruleset. Qoder shares the same
@@ -420,11 +437,11 @@ output = JSON.parse(result.stdout);
 assert.equal(output.hookSpecificOutput.hookEventName, 'SubagentStart');
 assert.match(
   output.hookSpecificOutput.additionalContext,
-  /PONYTAIL MODE ACTIVE — level: full/,
+  /PANDA MODE ACTIVE — level: full/,
 );
 // writeDefaultMode must merge into existing config, not overwrite it (#490).
 const mergeHome = path.join(temp, 'merge-home');
-const mergeConfigDir = path.join(mergeHome, '.config', 'ponytail');
+const mergeConfigDir = path.join(mergeHome, '.config', 'panda');
 fs.mkdirSync(mergeConfigDir, { recursive: true });
 const mergeConfigPath = path.join(mergeConfigDir, 'config.json');
 fs.writeFileSync(mergeConfigPath, JSON.stringify({ defaultMode: 'full', customSetting: 42 }, null, 2));
@@ -445,7 +462,7 @@ try {
 // restart), while a plain switch stays session-scoped and never touches config.
 const defHome = path.join(temp, 'default-cmd-home');
 const defEnv = { HOME: defHome, USERPROFILE: defHome, XDG_CONFIG_HOME: path.join(defHome, '.config') };
-const defConfig = path.join(defHome, '.config', 'ponytail', 'config.json');
+const defConfig = path.join(defHome, '.config', 'panda', 'config.json');
 const defFlag = path.join(defHome, '.claude', '.ponytail-active');
 
 result = run('ponytail-mode-tracker.js', defEnv, JSON.stringify({ prompt: '/ponytail default lite' }));
@@ -468,7 +485,7 @@ assert.equal(JSON.parse(fs.readFileSync(defConfig, 'utf8')).defaultMode, 'lite',
 // mode-tracker command path (#377): writing it is a no-op, and a stray
 // PONYTAIL_DEFAULT_MODE=review falls back to the built-in default.
 const revHome = path.join(temp, 'review-default-home');
-const revConfigDir = path.join(revHome, '.config', 'ponytail');
+const revConfigDir = path.join(revHome, '.config', 'panda');
 fs.mkdirSync(revConfigDir, { recursive: true });
 const revConfigPath = path.join(revConfigDir, 'config.json');
 fs.writeFileSync(revConfigPath, JSON.stringify({ defaultMode: 'lite' }, null, 2));
@@ -487,6 +504,21 @@ try {
 } finally {
   if (prevXdgRev === undefined) delete process.env.XDG_CONFIG_HOME; else process.env.XDG_CONFIG_HOME = prevXdgRev;
   if (prevEnvModeRev === undefined) delete process.env.PONYTAIL_DEFAULT_MODE; else process.env.PONYTAIL_DEFAULT_MODE = prevEnvModeRev;
+}
+
+// Panda's public environment variable overrides the legacy compatibility name.
+const pandaEnvHome = path.join(temp, 'panda-env-home');
+const previousPandaMode = process.env.PANDA_DEFAULT_MODE;
+const previousLegacyMode = process.env.PONYTAIL_DEFAULT_MODE;
+process.env.PANDA_DEFAULT_MODE = 'lite';
+process.env.PONYTAIL_DEFAULT_MODE = 'ultra';
+process.env.XDG_CONFIG_HOME = path.join(pandaEnvHome, '.config');
+try {
+  assert.equal(getDefaultMode(), 'lite');
+} finally {
+  if (previousPandaMode === undefined) delete process.env.PANDA_DEFAULT_MODE; else process.env.PANDA_DEFAULT_MODE = previousPandaMode;
+  if (previousLegacyMode === undefined) delete process.env.PONYTAIL_DEFAULT_MODE; else process.env.PONYTAIL_DEFAULT_MODE = previousLegacyMode;
+  if (prevXdg === undefined) delete process.env.XDG_CONFIG_HOME; else process.env.XDG_CONFIG_HOME = prevXdg;
 }
 
 console.log('hook compatibility checks passed');

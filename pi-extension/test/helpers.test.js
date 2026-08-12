@@ -48,12 +48,14 @@ test("resolveSessionMode returns fallback when entries is not an array", () => {
   assert.equal(resolveSessionMode("not an array"), "full"); // DEFAULT_MODE fallback
 });
 
-test("readDefaultMode and writeDefaultMode use XDG config path", () => {
-  const tempDir = mkdtempSync(join(tmpdir(), "ponytail-config-"));
+test("readDefaultMode and writeDefaultMode use Panda XDG config path", () => {
+  const tempDir = mkdtempSync(join(tmpdir(), "panda-config-"));
   const previousXdg = process.env.XDG_CONFIG_HOME;
+  const previousPandaDefault = process.env.PANDA_DEFAULT_MODE;
   const previousDefault = process.env.PONYTAIL_DEFAULT_MODE;
-  const configPath = join(tempDir, "ponytail", "config.json");
+  const configPath = join(tempDir, "panda", "config.json");
   process.env.XDG_CONFIG_HOME = tempDir;
+  delete process.env.PANDA_DEFAULT_MODE;
   delete process.env.PONYTAIL_DEFAULT_MODE;
 
   try {
@@ -65,19 +67,23 @@ test("readDefaultMode and writeDefaultMode use XDG config path", () => {
   } finally {
     if (previousXdg === undefined) delete process.env.XDG_CONFIG_HOME;
     else process.env.XDG_CONFIG_HOME = previousXdg;
+    if (previousPandaDefault === undefined) delete process.env.PANDA_DEFAULT_MODE;
+    else process.env.PANDA_DEFAULT_MODE = previousPandaDefault;
     if (previousDefault === undefined) delete process.env.PONYTAIL_DEFAULT_MODE;
     else process.env.PONYTAIL_DEFAULT_MODE = previousDefault;
     rmSync(tempDir, { recursive: true, force: true });
   }
 });
 
-test("readQuietStartup resolves env var, config file, and default in that order", () => {
-  const tempDir = mkdtempSync(join(tmpdir(), "ponytail-quiet-"));
+test("readQuietStartup resolves Panda env, config file, and legacy env in that order", () => {
+  const tempDir = mkdtempSync(join(tmpdir(), "panda-quiet-"));
   const previousXdg = process.env.XDG_CONFIG_HOME;
+  const previousPandaEnv = process.env.PANDA_QUIET_STARTUP;
   const previousEnv = process.env.PONYTAIL_QUIET_STARTUP;
-  const configDir = join(tempDir, "ponytail");
+  const configDir = join(tempDir, "panda");
   const configPath = join(configDir, "config.json");
   process.env.XDG_CONFIG_HOME = tempDir;
+  delete process.env.PANDA_QUIET_STARTUP;
   delete process.env.PONYTAIL_QUIET_STARTUP;
 
   try {
@@ -90,13 +96,19 @@ test("readQuietStartup resolves env var, config file, and default in that order"
     assert.equal(readQuietStartup(), true);
 
     // Env var overrides config
+    process.env.PANDA_QUIET_STARTUP = "false";
+    assert.equal(readQuietStartup(), false);
+    process.env.PANDA_QUIET_STARTUP = "1";
+    assert.equal(readQuietStartup(), true);
+
+    delete process.env.PANDA_QUIET_STARTUP;
     process.env.PONYTAIL_QUIET_STARTUP = "false";
     assert.equal(readQuietStartup(), false);
-    process.env.PONYTAIL_QUIET_STARTUP = "1";
-    assert.equal(readQuietStartup(), true);
   } finally {
     if (previousXdg === undefined) delete process.env.XDG_CONFIG_HOME;
     else process.env.XDG_CONFIG_HOME = previousXdg;
+    if (previousPandaEnv === undefined) delete process.env.PANDA_QUIET_STARTUP;
+    else process.env.PANDA_QUIET_STARTUP = previousPandaEnv;
     if (previousEnv === undefined) delete process.env.PONYTAIL_QUIET_STARTUP;
     else process.env.PONYTAIL_QUIET_STARTUP = previousEnv;
     rmSync(tempDir, { recursive: true, force: true });
@@ -136,14 +148,14 @@ test("filterSkillBodyForMode keeps rule bullets that contain a colon", () => {
   // Regression: rule bullets outside the Intensity section (e.g. the
   // "No unrequested abstractions:" rule or the `ponytail:` comment convention)
   // contain a colon and must not be mistaken for mode-example lines.
-  const skillPath = new URL("../../skills/ponytail/SKILL.md", import.meta.url);
+  const skillPath = new URL("../../skills/panda/SKILL.md", import.meta.url);
   const body = readFileSync(skillPath, "utf8");
 
   const filtered = filterSkillBodyForMode(body, "full");
 
   assert.ok(filtered.includes("No unrequested abstractions"));
   assert.ok(filtered.includes("Mark deliberate simplifications that cut a real corner"));
-  assert.ok(filtered.includes("`ponytail:` comment naming the ceiling and upgrade path"));
+  assert.ok(filtered.includes("`panda:` comment naming the ceiling and upgrade path"));
   // The Intensity examples are still filtered down to the active mode.
   assert.ok(filtered.includes('full: "`@lru_cache'));
   assert.ok(!filtered.includes('lite: "Done'));

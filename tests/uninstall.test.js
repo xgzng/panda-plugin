@@ -16,6 +16,7 @@ function runUninstall(env) {
 }
 
 delete process.env.CLAUDE_CONFIG_DIR;
+delete process.env.PANDA_DEFAULT_MODE;
 
 const temp = fs.mkdtempSync(path.join(os.tmpdir(), 'ponytail-uninstall-'));
 process.on('exit', () => fs.rmSync(temp, { recursive: true, force: true }));
@@ -27,10 +28,15 @@ fs.mkdirSync(claudeDir, { recursive: true });
 const flagPath = path.join(claudeDir, '.ponytail-active');
 fs.writeFileSync(flagPath, 'full');
 
-const configDir = path.join(temp, 'config-home', 'ponytail');
+const configDir = path.join(temp, 'config-home', 'panda');
 fs.mkdirSync(configDir, { recursive: true });
 const configPath = path.join(configDir, 'config.json');
 fs.writeFileSync(configPath, JSON.stringify({ defaultMode: 'ultra' }));
+
+const legacyConfigDir = path.join(temp, 'config-home', 'ponytail');
+fs.mkdirSync(legacyConfigDir, { recursive: true });
+const legacyConfigPath = path.join(legacyConfigDir, 'config.json');
+fs.writeFileSync(legacyConfigPath, JSON.stringify({ defaultMode: 'lite' }));
 
 const settingsPath = path.join(claudeDir, 'settings.json');
 fs.writeFileSync(settingsPath, JSON.stringify({
@@ -47,6 +53,7 @@ let result = runUninstall(env);
 assert.equal(result.status, 0, result.stderr);
 assert.equal(fs.existsSync(flagPath), false, 'mode flag must be removed');
 assert.equal(fs.existsSync(configPath), false, 'config file must be removed');
+assert.equal(fs.existsSync(legacyConfigPath), false, 'legacy config file must be removed');
 
 const settingsAfter = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
 assert.equal(

@@ -1,5 +1,6 @@
 #!/usr/bin/env node
-// ponytail — removes state ponytail wrote outside the plugin's own files:
+// Panda removes state written outside the plugin's own files. Legacy Ponytail
+// paths are cleaned too because Panda intentionally reads compatibility state.
 // the mode flag, the config file, and the statusLine entry it added to
 // settings.json. Plugin files themselves are removed by each host's own
 // uninstall command (see README); this only cleans up what those commands
@@ -22,6 +23,7 @@ function removeIfExists(filePath, label) {
 
 removeIfExists(path.join(getClaudeDir(), '.ponytail-active'), 'mode flag');
 removeIfExists(getConfigPath(), 'config file');
+removeIfExists(path.join(path.dirname(getConfigPath()), '..', 'ponytail', 'config.json'), 'legacy config file');
 
 const settingsPath = path.join(getClaudeDir(), 'settings.json');
 try {

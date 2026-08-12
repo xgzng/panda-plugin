@@ -1,15 +1,14 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "ponytail",
-  "description": "Lazy senior dev mode for AI agents. The best code is the code you never wrote.",
+  "name": "panda",
+  "description": "Company AI coding guardrails based on Ponytail.",
   "owner": {
-    "name": "Dietrich Gebert",
-    "url": "https://github.com/DietrichGebert"
+    "name": "Company Engineering"
   },
   "plugins": [
     {
-      "name": "ponytail",
-      "description": "Forces the laziest solution that works. YAGNI, stdlib first, one line over fifty.",
+      "name": "panda",
+      "description": "Uses project rules, reuses existing capabilities, and chooses the minimum compliant implementation.",
       "source": "./",
       "category": "productivity"
     }

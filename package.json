@@ -1,11 +1,11 @@
 {
-  "name": "@dietrichgebert/ponytail",
+  "name": "panda-company-plugin",
   "version": "4.9.0",
-  "description": "Lazy senior dev mode for AI agents. The best code is the code you never wrote.",
-  "keywords": ["opencode-plugin", "opencode", "ponytail", "pi-package", "pi", "skills", "qoder"],
+  "description": "Company AI coding guardrails based on Ponytail.",
+  "keywords": ["opencode-plugin", "opencode", "panda", "ponytail", "pi-package", "skills", "qoder"],
   "license": "MIT",
   "author": {
-    "name": "Dietrich Gebert",
+    "name": "Company Engineering, based on Dietrich Gebert's Ponytail",
     "url": "https://github.com/DietrichGebert"
   },
   "homepage": "https://github.com/DietrichGebert/ponytail",
@@ -30,6 +30,8 @@
     ".qoder-plugin/",
     "pi-extension/",
     "scripts/uninstall.js",
+    "rules/",
+    "THIRD_PARTY_NOTICES.md",
     "assets/",
     "LICENSE"
   ],
@@ -40,8 +42,6 @@
     "extensions": ["./pi-extension/index.js"],
     "skills": ["./skills"]
   },
-  "publishConfig": {
-    "access": "public"
-  }
+  "private": true
 }
 

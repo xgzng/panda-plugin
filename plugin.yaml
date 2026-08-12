@@ -1,21 +1,21 @@
-name: ponytail
+name: panda
 version: 4.9.0
-description: Lazy senior dev mode for Hermes Agent, always-on context, bundled skills, and slash commands.
-author: Dietrich Gebert
+description: Company AI coding guardrails based on Ponytail, with always-on context, bundled skills, and slash commands.
+author: Company Engineering, based on Dietrich Gebert's Ponytail
 provides_hooks:
   - pre_llm_call
   - pre_gateway_dispatch
 provides_commands:
-  - ponytail
-  - ponytail-review
-  - ponytail-audit
-  - ponytail-debt
-  - ponytail-gain
-  - ponytail-help
+  - panda
+  - panda-review
+  - panda-audit
+  - panda-debt
+  - panda-gain
+  - panda-help
 provides_skills:
-  - ponytail
-  - ponytail-review
-  - ponytail-audit
-  - ponytail-debt
-  - ponytail-gain
-  - ponytail-help
+  - panda
+  - panda-review
+  - panda-audit
+  - panda-debt
+  - panda-gain
+  - panda-help

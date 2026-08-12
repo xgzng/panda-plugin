@@ -1,12 +1,25 @@
 #!/usr/bin/env node
-// Shared Ponytail instruction builder for Claude hooks and Pi extension.
+// Shared Panda instruction builder for Claude hooks and Pi extension.
 
 const fs = require('fs');
 const path = require('path');
 const { DEFAULT_MODE, normalizeMode, normalizePersistedMode } = require('./ponytail-config');
 
 const INDEPENDENT_MODES = new Set(['review']);
-const SKILL_PATH = path.join(__dirname, '..', 'skills', 'ponytail', 'SKILL.md');
+const SKILL_PATH = path.join(__dirname, '..', 'skills', 'panda', 'SKILL.md');
+const COMPANY_RULES_PATH = path.join(__dirname, '..', 'rules', 'company-core.md');
+
+function readCompanyRules() {
+  try {
+    return fs.readFileSync(COMPANY_RULES_PATH, 'utf8').trim();
+  } catch (_) {
+    return [
+      '# Panda company rules',
+      '',
+      'Follow the current project rules and preserve security, correctness, compatibility, and required operational controls.',
+    ].join('\n');
+  }
+}
 
 function filterSkillBodyForMode(body, mode) {
   const effectiveMode = normalizeMode(mode) || DEFAULT_MODE;
@@ -41,11 +54,11 @@ function filterSkillBodyForMode(body, mode) {
 }
 
 function getFallbackInstructions(mode) {
-  return 'PONYTAIL MODE ACTIVE — level: ' + mode + '\n\n' +
+  return 'PANDA MODE ACTIVE — level: ' + mode + '\n\n' +
     'You are a lazy senior developer. Lazy means efficient, not careless. The best code is the code never written.\n\n' +
     '## Persistence\n\n' +
-    'ACTIVE EVERY RESPONSE. No drift back to over-building. Still active if unsure. Off only: "stop ponytail" / "normal mode".\n\n' +
-    'Current level: **' + mode + '**. Switch: `/ponytail lite|full|ultra`.\n\n' +
+    'ACTIVE EVERY RESPONSE. No drift back to over-building. Still active if unsure. Off only: "stop panda" / "normal mode".\n\n' +
+    'Current level: **' + mode + '**. Switch: `/panda lite|full|ultra`.\n\n' +
     '## The ladder\n\n' +
     'Before any code, stop at the first rung that holds (the ladder runs after you understand the problem, not instead of it — read the code it touches and trace the real flow first):\n' +
     '1. Does this need to be built at all? (YAGNI)\n' +
@@ -61,7 +74,7 @@ function getFallbackInstructions(mode) {
     'Deletion over addition. Boring over clever. Fewest files possible. ' +
     'Ship the lazy version and question the complex request in the same response — never stall. ' +
     'Between two same-size stdlib options, pick the one correct on edge cases. ' +
-    'Mark deliberate simplifications that cut a real corner with a known ceiling, using a `ponytail:` comment that names the ceiling and upgrade path.\n\n' +
+    'Mark deliberate simplifications that cut a real corner with a known ceiling, using a `panda:` comment that names the ceiling and upgrade path.\n\n' +
     '## Output\n\n' +
     'Code first. Then at most three short lines: what was skipped, when to add it. ' +
     'If the explanation is longer than the code, delete the explanation. ' +
@@ -71,21 +84,23 @@ function getFallbackInstructions(mode) {
     'security measures, accessibility basics, the calibration real hardware needs (the platform is never the spec ideal), anything the user explicitly asked to keep. ' +
     'Lazy code without its check is unfinished: non-trivial logic leaves ONE runnable check behind (assert-based demo/self-check or one small test file; no frameworks). Trivial one-liners need no test.\n\n' +
     '## Boundaries\n\n' +
-    'Ponytail governs what you build, not how you talk. "stop ponytail" or "normal mode": revert. Level persists until changed or session end.';
+    'Panda governs what you build, not how you talk. "stop panda" or "normal mode": revert. Level persists until changed or session end.\n\n' +
+    readCompanyRules();
 }
 
 function getPonytailInstructions(mode) {
   const configuredMode = normalizePersistedMode(mode) || DEFAULT_MODE;
 
   if (INDEPENDENT_MODES.has(configuredMode)) {
-    return 'PONYTAIL MODE ACTIVE — level: ' + configuredMode + '. Behavior defined by /ponytail-' + configuredMode + ' skill.';
+    return 'PANDA MODE ACTIVE — level: ' + configuredMode + '. Behavior defined by /panda-' + configuredMode + ' skill.\n\n' + readCompanyRules();
   }
 
   const effectiveMode = normalizeMode(configuredMode) || DEFAULT_MODE;
 
   try {
-    return 'PONYTAIL MODE ACTIVE — level: ' + effectiveMode + '\n\n' +
-      filterSkillBodyForMode(fs.readFileSync(SKILL_PATH, 'utf8'), effectiveMode);
+    return 'PANDA MODE ACTIVE — level: ' + effectiveMode + '\n\n' +
+      filterSkillBodyForMode(fs.readFileSync(SKILL_PATH, 'utf8'), effectiveMode) +
+      '\n\n' + readCompanyRules();
   } catch (e) {
     return getFallbackInstructions(effectiveMode);
   }
