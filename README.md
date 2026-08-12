@@ -98,14 +98,15 @@ codex plugin marketplace add xgzng/panda-plugin
 codex plugin add panda@panda
 ```
 
-Restart Codex or Codex Desktop after installation. Invoke a skill with its
-plugin namespace, for example `$panda:panda` or `$panda:panda-review`.
+Run `codex` and open `/hooks`, review and trust its two lifecycle hooks, and
+start a new thread.
 
-Verify installation:
+This same install also covers the Codex desktop app: restart the app after
+installing and it picks up the plugin.
 
-```bash
-codex plugin list --marketplace panda
-```
+On Windows, if PowerShell blocks `codex.ps1`, run the same two commands with
+`codex.cmd` instead. This changes only the executable name, not the install
+process.
 
 ### Claude Code
 
@@ -115,6 +116,11 @@ Run these as two separate prompts:
 /plugin marketplace add xgzng/panda-plugin
 /plugin install panda@panda
 ```
+
+The same steps work in the Claude Code Desktop app's Code tab: type the two
+`/plugin` commands above into the prompt box, or click the **+** button, choose
+**Plugins** -> **Add plugin**, and manage marketplaces from **Customize** in
+the sidebar.
 
 ### Other agents
 

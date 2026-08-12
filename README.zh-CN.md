@@ -81,13 +81,11 @@ codex plugin marketplace add xgzng/panda-plugin
 codex plugin add panda@panda
 ```
 
-安装后重启 Codex 或 Codex Desktop。通过插件命名空间调用 Skill，例如 `$panda:panda` 或 `$panda:panda-review`。
+安装完成后运行 `codex`，打开 `/hooks`，检查并信任其中两个生命周期 Hook，然后新建一个任务。
 
-验证安装：
+同一套安装也适用于 Codex Desktop：安装完成后重启应用，Codex Desktop 就会加载插件。
 
-```bash
-codex plugin list --marketplace panda
-```
+Windows 用户如果遇到 PowerShell 禁止运行 `codex.ps1`，只需把上面两条命令中的 `codex` 改为 `codex.cmd`。这只是换用 Windows 命令入口，安装流程不变。
 
 ### Claude Code
 
@@ -97,6 +95,8 @@ codex plugin list --marketplace panda
 /plugin marketplace add xgzng/panda-plugin
 /plugin install panda@panda
 ```
+
+Claude Code Desktop 的 Code 页面也使用相同步骤：可以在输入框中分别输入上面两条 `/plugin` 命令，也可以点击输入框旁边的 **+**，选择 **Plugins** -> **Add plugin**；marketplace 可在侧边栏的 **Customize** 中管理。
 
 ### 其他 Agent
 
