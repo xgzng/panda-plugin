@@ -1,121 +1,246 @@
 <p align="center">
   <picture>
     <source media="(prefers-color-scheme: dark)" srcset="assets/logo-dark.png">
-    <img src="assets/logo.png" width="180" alt="Panda company coding guardrails">
+    <img src="assets/logo.png" width="220" alt="Panda, the lazy but reliable senior engineer">
   </picture>
 </p>
 
-# Panda
+<h1 align="center">Panda</h1>
 
-Panda is the company AI coding guardrail plugin derived from
-[Ponytail](https://github.com/DietrichGebert/ponytail). It makes coding agents
-read the current project's rules, reuse existing capabilities, and choose the
-smallest compliant implementation without removing safety or operational
-controls.
+<p align="center">
+  <em>Lazy enough to avoid unnecessary code. Reliable enough to ship the right code.</em>
+</p>
 
-## What it enforces
+<p align="center">
+  <img src="https://img.shields.io/badge/Codex-plugin-111111?style=flat-square" alt="Codex plugin">
+  <img src="https://img.shields.io/badge/Claude_Code-plugin-111111?style=flat-square" alt="Claude Code plugin">
+  <img src="https://img.shields.io/badge/license-MIT-111111?style=flat-square" alt="MIT license">
+</p>
 
-1. Understand the affected flow and current project rules.
-2. Reuse existing code, standard libraries, platform features, and installed dependencies.
-3. Add only the minimum code required by the concrete task.
-4. Preserve security, validation, transactions, idempotency, concurrency controls, compatibility, logs, monitoring, and tests.
-5. Respect established architecture boundaries.
+> [!IMPORTANT]
+> **Panda is a derivative project based on [Ponytail](https://github.com/DietrichGebert/ponytail) by Dietrich Gebert.**
+> It was created by studying and adapting Ponytail under the MIT License. Dietrich Gebert and the Ponytail project do not maintain or endorse this fork.
 
-Project-specific rules remain owned by each repository. Hosts load files such
-as `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, and
-`.cursor/rules/` through their native mechanisms. Panda adds the shared company
-rules in [`rules/company-core.md`](rules/company-core.md); it does not scan all
-projects under `D:\Project`.
+Panda is a set of rules, skills, plugins, and lifecycle hooks for AI coding
+agents. It gives Codex, Claude Code, Copilot, Gemini, and other agents the
+instincts of a lazy but dependable senior engineer: understand the system
+first, reuse what already works, and write only the code the task actually
+needs.
 
-Precedence: company safety and quality boundaries, current-project rules, then
-Panda's minimization advice.
+Lazy about implementation. Never lazy about correctness.
 
-## Skills
+## The Panda
 
-| Skill | Use |
-|---|---|
-| `panda` | Use during development to choose the smallest compliant implementation. |
-| `panda-review` | Review the current diff for over-engineering before commit or merge. |
-| `panda-audit` | Audit the whole repository for unnecessary complexity. |
-| `panda-debt` | Report deliberate `panda:` simplification markers and legacy `ponytail:` markers. |
-| `panda-gain` | Show Ponytail's published benchmark as reference data, not repository savings. |
-| `panda-help` | Show the command and mode reference. |
+You know this engineer. Quiet. Unhurried. Possibly holding bamboo.
 
-Supported modes: `lite`, `full` (default), `ultra`, and `off`.
+You show Panda fifty lines of new framework code. Panda looks through the
+repository, finds the helper that already exists, removes forty-eight lines,
+and goes back to doing nothing.
+
+That is the point.
+
+Panda does not mean careless code or code golf. It means avoiding speculative
+abstractions, duplicate implementations, unnecessary dependencies, and layers
+that exist only because an AI agent wanted its answer to look impressive.
+
+## Before / after
+
+You ask for a date picker. The agent installs a library, creates a wrapper,
+adds a stylesheet, writes timezone glue, and introduces a new maintenance
+surface.
+
+With Panda:
+
+```html
+<!-- panda: the browser already has one -->
+<input type="date">
+```
+
+The same rule applies to backend systems: reuse the current Facade, Service,
+Factory, cache, configuration, validation, and transaction patterns before
+inventing a parallel architecture.
+
+## How it works
+
+Before writing code, Panda stops at the first rung that holds:
+
+```text
+1. Does this need to exist?       -> no: skip it (YAGNI)
+2. Already in this repository?    -> reuse it
+3. Standard library does it?      -> use it
+4. Native platform feature?       -> use it
+5. Installed dependency does it?  -> use it
+6. A very small implementation?   -> write that
+7. Only then                      -> add the minimum necessary code
+```
+
+The ladder runs only after the agent understands the affected flow and the
+current project's rules. Panda shortens the solution, not the investigation.
+
+Panda never simplifies away security, authorization, trust-boundary
+validation, error handling, data integrity, transactions, idempotency,
+concurrency controls, compatibility, logging, monitoring, accessibility, or
+required tests.
 
 ## Install
 
-Publish this repository to the company Git service before team rollout. Replace
-`COMPANY_GIT/Panda/panda-plugin` below with the actual repository path.
-
-### Claude Code
-
-```text
-/plugin marketplace add COMPANY_GIT/Panda/panda-plugin
-/plugin install panda@panda
-```
+Node.js must be available on `PATH` for lifecycle hooks. The skills still work
+without hooks, but automatic activation will not.
 
 ### Codex
 
-```powershell
-codex plugin marketplace add COMPANY_GIT/Panda/panda-plugin
+```bash
+codex plugin marketplace add xgzng/panda-plugin
 codex plugin add panda@panda
 ```
 
-Restart Codex after installation. In Codex, invoke skills with
-`$panda:panda`, `$panda:panda-review`, or the other names shown by the client.
+Restart Codex or Codex Desktop after installation. Invoke a skill with its
+plugin namespace, for example `$panda:panda` or `$panda:panda-review`.
 
-### Other hosts
+Verify installation:
 
-The repository retains the upstream adapters for GitHub Copilot CLI, Gemini,
+```bash
+codex plugin list --marketplace panda
+```
+
+### Claude Code
+
+Run these as two separate prompts:
+
+```text
+/plugin marketplace add xgzng/panda-plugin
+/plugin install panda@panda
+```
+
+### Other agents
+
+Panda retains Ponytail's adapters for GitHub Copilot CLI, Gemini CLI,
 OpenCode, Pi, Qoder, Hermes, OpenClaw, Grok, Cursor, Windsurf, Cline, Kiro,
-Devin, and other instruction-file compatible agents. See
-[`docs/agent-portability.md`](docs/agent-portability.md) for the mapping. For
-instruction-only hosts, copy that host's Panda rule file from this repository.
+Devin, and instruction-file compatible agents. See
+[`docs/agent-portability.md`](docs/agent-portability.md) for the file and
+command mapping.
 
-## Configuration
+## Skills
 
-Set the default mode with `PANDA_DEFAULT_MODE=lite|full|ultra|off`, or:
+| Skill | Purpose |
+|---|---|
+| `panda` | Use during development to find the smallest compliant implementation. |
+| `panda-review` | Review the current diff for over-engineering before commit or merge. |
+| `panda-audit` | Audit the whole repository for unnecessary complexity. |
+| `panda-debt` | Collect deliberate `panda:` simplification markers into a debt ledger. |
+| `panda-gain` | Show Ponytail's published upstream benchmark as reference data. |
+| `panda-help` | Display the command and mode reference. |
+
+Codex examples:
+
+```text
+$panda:panda
+$panda:panda-review
+$panda:panda-audit
+```
+
+## Modes
+
+| Mode | Behaviour |
+|---|---|
+| `lite` | Build the requested solution and briefly identify the simpler alternative. |
+| `full` | Enforce the reuse and minimum-implementation ladder. Default. |
+| `ultra` | Challenge speculative requirements and prefer deletion before addition. |
+| `off` | Disable persistent Panda guidance. |
+
+Set the default with `PANDA_DEFAULT_MODE=lite|full|ultra|off`, or create:
 
 ```json
 { "defaultMode": "full" }
 ```
 
-Config path:
+Configuration paths:
 
 - Windows: `%APPDATA%\panda\config.json`
 - macOS/Linux: `~/.config/panda/config.json`
 
-Legacy `PONYTAIL_*` environment variables and `.ponytail-active` session files
-remain supported to reduce upstream merge conflicts and preserve compatibility.
+Legacy `PONYTAIL_*` environment variables remain accepted for compatibility
+with upstream configuration and future merges.
 
-## Benchmark attribution
+## Project rules
 
-The bundled benchmark material and the values shown by `panda-gain` are from
-upstream Ponytail, not measurements of Panda or any company repository. The
-published agentic benchmark reports averages of 54% less added LOC, 22% fewer
-tokens, 20% lower cost, and 27% less completion time while its safety tier
-passed 20/20 checks. Treat these as upstream reference results, not promised
-company savings. See
+Panda does not scan every repository on the machine. It works with the active
+host's native project-rule mechanism, including `AGENTS.md`, `CLAUDE.md`,
+`.github/copilot-instructions.md`, `.cursor/rules/`, `GEMINI.md`, and
+`.windsurf/rules/`.
+
+The shared company boundaries live in
+[`rules/company-core.md`](rules/company-core.md).
+
+Precedence:
+
+1. Company safety and quality boundaries.
+2. Current-project rules and architecture.
+3. Panda's minimization advice.
+
+## Upstream benchmark
+
+> [!NOTE]
+> The following figures are **Ponytail's published upstream benchmark results**. They are not measurements of Panda, this fork, or any company repository, and they are not a promise of future savings.
+
+The upstream agentic benchmark used real Claude Code sessions against the same
+agent without the skill:
+
+| Compared with no-skill baseline | Added LOC | Tokens | Cost | Time | Safety tier |
+|---|---:|---:|---:|---:|---:|
+| **Ponytail upstream result** | **-54%** | **-22%** | **-20%** | **-27%** | **20/20 passed** |
+
+The largest reductions appeared where agents had obvious over-building traps,
+such as date pickers and color pickers. Tasks that were already minimal showed
+little or no reduction. See the bundled upstream write-up at
 [`benchmarks/results/2026-06-18-agentic.md`](benchmarks/results/2026-06-18-agentic.md)
-and [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+and the original [Ponytail repository](https://github.com/DietrichGebert/ponytail).
 
-## Development and validation
+## Update and uninstall
 
-```powershell
+Refresh the Git marketplace and reinstall the cached version:
+
+```bash
+codex plugin marketplace upgrade panda
+codex plugin remove panda
+codex plugin add panda@panda
+```
+
+Uninstall:
+
+```bash
+node scripts/uninstall.js
+codex plugin remove panda
+codex plugin marketplace remove panda
+```
+
+Run the cleanup script before removing the plugin if you also want its local
+mode/configuration state removed.
+
+## Development
+
+```bash
 node scripts/check-rule-copies.js
 npm test
 ```
 
-Regenerate the logos from the approved source image:
+Public skill names use Panda. Some internal Hook filenames, `.ponytail-active`,
+and the `ponytail-mcp` directory intentionally retain upstream-compatible
+names to make future Ponytail merges smaller and preserve existing sessions.
 
-```powershell
-python scripts/process-logo.py <source-image> assets
-```
+## Origin and license
 
-Public Skill names are Panda-branded. Hook filenames, `.ponytail-active`, and
-the `ponytail-mcp` directory intentionally retain upstream-compatible internal
-names. Do not rename those only for cosmetics.
+Panda is based on **[Ponytail](https://github.com/DietrichGebert/ponytail)**,
+created by **Dietrich Gebert**. This repository studies, adapts, and extends
+Ponytail with Panda branding and company-oriented engineering boundaries.
 
-Panda retains Ponytail's MIT license. See [`LICENSE`](LICENSE) and
-[`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md).
+Ponytail is distributed under the [MIT License](LICENSE). The original
+copyright and license notice are preserved. Benchmark material in this
+repository belongs to and describes the upstream Ponytail project; Panda does
+not claim those results as its own.
+
+See [`THIRD_PARTY_NOTICES.md`](THIRD_PARTY_NOTICES.md) for the explicit
+third-party attribution.
+
+Panda is an independent derivative and is not maintained, sponsored, or
+endorsed by Dietrich Gebert or the Ponytail project.
