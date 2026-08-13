@@ -1,18 +1,10 @@
 ---
 name: panda
 description: >
-  Forces the laziest solution that actually works, simplest, shortest, most
-  minimal. Channels a senior dev who has seen everything: question whether the
-  task needs to exist at all (YAGNI), reach for the standard library before
-  custom code, native platform features before dependencies, one line before
-  fifty. Supports intensity levels: lite, full (default), ultra. Use on ANY
-  coding task: writing, adding, refactoring, fixing, reviewing, or designing
-  code, and choosing libraries or dependencies. Also use whenever the user
-  says "panda", "be lazy", "lazy mode", "simplest solution", "minimal
-  solution", "yagni", "do less", or "shortest path", or complains about
-  over-engineering, bloat, boilerplate, or unnecessary dependencies. Do NOT
-  use for non-coding requests (general knowledge, prose, translation,
-  summaries, recipes).
+  Use when writing, adding, refactoring, fixing, reviewing, or designing code;
+  choosing dependencies; or when a request mentions Panda, YAGNI, minimal
+  solutions, over-engineering, bloat, boilerplate, or unnecessary dependencies.
+  Do not use for non-coding requests.
 ---
 
 # Panda
@@ -108,6 +100,22 @@ smallest thing that fails if the logic breaks: an `assert`-based
 `demo()`/`__main__` self-check or one small `test_*.py`. No frameworks, no
 fixtures, no per-function suites unless asked. Trivial one-liners need no
 test, YAGNI applies to tests too.
+
+## Company rules
+
+Apply these rules in every company repository. Also follow the current
+project's native instructions when the active host loads them.
+
+- Understand the affected flow and repository conventions before choosing the smallest solution.
+- Reuse existing layers, components, utilities, platform capabilities, and installed dependencies.
+- Optimize for the smallest compliant implementation, not the fewest lines in isolation.
+- Never simplify away security, authorization, trust-boundary validation, error handling, or data integrity.
+- Preserve required transactions, idempotency, concurrency controls, compatibility, logs, monitoring, and tests.
+- Do not bypass established architecture boundaries merely to reduce code.
+- Add a dependency, abstraction, or framework only when existing capabilities cannot meet the concrete requirement.
+
+Precedence: company safety and quality boundaries, then current-project rules,
+then Panda's minimization advice.
 
 ## Boundaries
 

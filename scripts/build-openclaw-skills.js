@@ -14,7 +14,7 @@ const fs = require('fs');
 const path = require('path');
 
 const ROOT = path.join(__dirname, '..');
-const HOMEPAGE = 'https://github.com/DietrichGebert/ponytail';
+const HOMEPAGE = 'https://github.com/xgzng/panda-plugin';
 
 const DESCRIPTIONS = {
   'panda': 'Company coding guardrails for any coding task: project rules, reuse first, minimum compliant implementation, no unrequested abstractions.',

@@ -1,6 +1,6 @@
 {
   "name": "panda-company-plugin",
-  "version": "4.9.0",
+  "version": "5.0.0",
   "description": "Company AI coding guardrails based on Ponytail.",
   "keywords": ["opencode-plugin", "opencode", "panda", "ponytail", "pi-package", "skills", "qoder"],
   "license": "MIT",
@@ -8,13 +8,13 @@
     "name": "Company Engineering, based on Dietrich Gebert's Ponytail",
     "url": "https://github.com/DietrichGebert"
   },
-  "homepage": "https://github.com/DietrichGebert/ponytail",
+  "homepage": "https://github.com/xgzng/panda-plugin",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/DietrichGebert/ponytail.git"
+    "url": "git+https://github.com/xgzng/panda-plugin.git"
   },
   "bugs": {
-    "url": "https://github.com/DietrichGebert/ponytail/issues"
+    "url": "https://github.com/xgzng/panda-plugin/issues"
   },
   "main": "./.opencode/plugins/ponytail.mjs",
   "exports": {

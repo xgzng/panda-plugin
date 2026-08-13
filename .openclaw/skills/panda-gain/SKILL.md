@@ -1,7 +1,7 @@
 ---
 name: panda-gain
 description: "Show the upstream Ponytail benchmark as a reference scoreboard. Not a Panda or per-repository measurement."
-homepage: https://github.com/DietrichGebert/ponytail
+homepage: https://github.com/xgzng/panda-plugin
 license: MIT
 ---
 

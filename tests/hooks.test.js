@@ -70,8 +70,13 @@ assert.match(
   output.hookSpecificOutput.additionalContext,
   /PANDA MODE ACTIVE — level: ultra/,
 );
-assert.match(output.hookSpecificOutput.additionalContext, /# Panda company rules/);
-assert.match(output.hookSpecificOutput.additionalContext, /current project's native instructions/);
+assert.match(output.hookSpecificOutput.additionalContext, /## Company rules/);
+assert.match(output.hookSpecificOutput.additionalContext, /current\s+project's native instructions/);
+assert.equal(
+  (output.hookSpecificOutput.additionalContext.match(/## Company rules/g) || []).length,
+  1,
+  'company rules embedded in the skill must not be injected twice',
+);
 
 result = run(
   'ponytail-mode-tracker.js',
@@ -290,7 +295,7 @@ assert.equal(output.systemMessage, 'PANDA:FULL');
 assert.equal(output.additionalContext, undefined, 'Codex must not emit additionalContext at top level (#573)');
 assert.equal(output.hookSpecificOutput.hookEventName, 'SubagentStart');
 assert.match(output.hookSpecificOutput.additionalContext, /PANDA MODE ACTIVE — level: full/);
-assert.match(output.hookSpecificOutput.additionalContext, /# Panda company rules/);
+assert.match(output.hookSpecificOutput.additionalContext, /## Company rules/);
 
 // SubagentStart scoping (issue #506): PONYTAIL_SUBAGENT_MATCHER limits the
 // injection to agent types whose name matches the regex. Unset keeps the
@@ -310,7 +315,7 @@ result = run(
 );
 assert.equal(result.status, 0, result.stderr);
 output = JSON.parse(result.stdout);
-assert.match(output.hookSpecificOutput.additionalContext, /# Panda company rules/);
+assert.match(output.hookSpecificOutput.additionalContext, /## Company rules/);
 
 // Matching agent_type → inject; the match is case-insensitive.
 result = run(

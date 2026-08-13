@@ -33,6 +33,9 @@ needs.
 
 Lazy about implementation. Never lazy about correctness.
 
+Current release: **Panda 5.0.0**, based on the **Ponytail 4.9.0** upstream
+baseline. Panda versions track this derivative project independently.
+
 ## The Panda
 
 You know this engineer. Quiet. Unhurried. Possibly holding bamboo.

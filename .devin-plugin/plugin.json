@@ -1,13 +1,13 @@
 {
   "name": "panda",
-  "version": "4.9.0",
+  "version": "5.0.0",
   "description": "Lazy senior dev mode. Forces the simplest, shortest solution that actually works: YAGNI, stdlib first, no unrequested abstractions.",
   "author": {
-    "name": "Dietrich Gebert",
-    "url": "https://github.com/DietrichGebert"
+    "name": "Company Engineering, based on Dietrich Gebert's Ponytail",
+    "url": "https://github.com/xgzng"
   },
-  "homepage": "https://github.com/DietrichGebert/ponytail",
-  "repository": "https://github.com/DietrichGebert/ponytail",
+  "homepage": "https://github.com/xgzng/panda-plugin",
+  "repository": "https://github.com/xgzng/panda-plugin",
   "license": "MIT",
   "keywords": ["yagni", "minimalism", "code-review", "productivity"]
 }

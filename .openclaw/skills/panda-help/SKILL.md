@@ -1,7 +1,7 @@
 ---
 name: panda-help
 description: "Quick reference for Panda modes, skills, and commands. One-shot display."
-homepage: https://github.com/DietrichGebert/ponytail
+homepage: https://github.com/xgzng/panda-plugin
 license: MIT
 ---
 
@@ -69,3 +69,5 @@ If `/plugin` is not recognized, your Claude Code is out of date. Update it (`npm
 
 Full docs: read this plugin's root `README.md`. Upstream examples and benchmark
 source: https://github.com/DietrichGebert/ponytail
+
+Panda project and issue tracker: https://github.com/xgzng/panda-plugin

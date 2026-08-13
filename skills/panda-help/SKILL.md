@@ -70,3 +70,5 @@ If `/plugin` is not recognized, your Claude Code is out of date. Update it (`npm
 
 Full docs: read this plugin's root `README.md`. Upstream examples and benchmark
 source: https://github.com/DietrichGebert/ponytail
+
+Panda project and issue tracker: https://github.com/xgzng/panda-plugin

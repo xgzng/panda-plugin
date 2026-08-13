@@ -1,5 +1,8 @@
 # Panda company rules
 
+> TODO: Replace this initial baseline only after formal review by the company's
+> architecture, security, and engineering-governance owners.
+
 Apply these rules in every company repository. Also follow the current project's native instructions, such as `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, `.cursor/rules/`, `GEMINI.md`, or `.windsurf/rules/` when the active host loads them.
 
 - Understand the affected flow and repository conventions before choosing the smallest solution.

@@ -55,6 +55,8 @@ const INVARIANTS = [
   'security',
   'accessibility',
   'Lazy code without its check is unfinished', // one-check promoted to headline
+  'Preserve required transactions, idempotency, concurrency controls, compatibility, logs, monitoring, and tests.',
+  'Precedence: company safety and quality boundaries, then current-project rules,',
 ];
 
 const skill = read('skills/panda/SKILL.md');

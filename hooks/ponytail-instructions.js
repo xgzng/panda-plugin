@@ -21,6 +21,13 @@ function readCompanyRules() {
   }
 }
 
+function withCompanyRules(body) {
+  const text = String(body || '').trim();
+  return text.includes('## Company rules')
+    ? text
+    : text + '\n\n' + readCompanyRules();
+}
+
 function filterSkillBodyForMode(body, mode) {
   const effectiveMode = normalizeMode(mode) || DEFAULT_MODE;
   const withoutFrontmatter = String(body || '').replace(/^---[\s\S]*?---\s*/, '');
@@ -99,8 +106,10 @@ function getPonytailInstructions(mode) {
 
   try {
     return 'PANDA MODE ACTIVE — level: ' + effectiveMode + '\n\n' +
-      filterSkillBodyForMode(fs.readFileSync(SKILL_PATH, 'utf8'), effectiveMode) +
-      '\n\n' + readCompanyRules();
+      withCompanyRules(filterSkillBodyForMode(
+        fs.readFileSync(SKILL_PATH, 'utf8'),
+        effectiveMode,
+      ));
   } catch (e) {
     return getFallbackInstructions(effectiveMode);
   }
@@ -110,4 +119,5 @@ module.exports = {
   filterSkillBodyForMode,
   getFallbackInstructions,
   getPonytailInstructions,
+  withCompanyRules,
 };

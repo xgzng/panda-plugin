@@ -1,7 +1,7 @@
 {
   "name": "ponytail-mcp",
-  "version": "4.9.0",
-  "description": "MCP server that serves Ponytail's lazy-senior-dev instructions as a prompt and a tool.",
+  "version": "5.0.0",
+  "description": "Internal MCP server that serves Panda's company-aware minimal implementation instructions.",
   "private": true,
   "type": "module",
   "license": "MIT",

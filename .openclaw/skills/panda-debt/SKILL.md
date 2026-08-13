@@ -1,7 +1,7 @@
 ---
 name: panda-debt
 description: "Harvest every panda: or legacy ponytail: shortcut comment into one debt ledger. One-shot report."
-homepage: https://github.com/DietrichGebert/ponytail
+homepage: https://github.com/xgzng/panda-plugin
 license: MIT
 ---
 
