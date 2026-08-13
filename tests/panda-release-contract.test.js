@@ -35,6 +35,20 @@ test('skill-only installs carry every company rule', () => {
   }
 });
 
+test('quality gates take precedence over reduction metrics', () => {
+  const requiredRule = 'LOC, file count, and dependency count are optimization metrics only after correctness, security, regression tests, and project-rule gates pass. Never remove required behavior or safeguards to lower these metrics.';
+  const ruleSources = [
+    'rules/company-core.md',
+    'skills/panda/SKILL.md',
+    '.openclaw/skills/panda/SKILL.md',
+    'AGENTS.md',
+  ];
+
+  for (const relPath of ruleSources) {
+    assert.ok(read(relPath).includes(requiredRule), `${relPath} is missing the quality-gate rule`);
+  }
+});
+
 test('Panda manifests point users to Panda while preserving upstream notices separately', () => {
   const manifests = [
     'package.json',

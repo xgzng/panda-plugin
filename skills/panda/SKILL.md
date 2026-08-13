@@ -111,6 +111,7 @@ project's native instructions when the active host loads them.
 - Optimize for the smallest compliant implementation, not the fewest lines in isolation.
 - Never simplify away security, authorization, trust-boundary validation, error handling, or data integrity.
 - Preserve required transactions, idempotency, concurrency controls, compatibility, logs, monitoring, and tests.
+- LOC, file count, and dependency count are optimization metrics only after correctness, security, regression tests, and project-rule gates pass. Never remove required behavior or safeguards to lower these metrics.
 - Do not bypass established architecture boundaries merely to reduce code.
 - Add a dependency, abstraction, or framework only when existing capabilities cannot meet the concrete requirement.
 

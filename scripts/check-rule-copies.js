@@ -56,6 +56,7 @@ const INVARIANTS = [
   'accessibility',
   'Lazy code without its check is unfinished', // one-check promoted to headline
   'Preserve required transactions, idempotency, concurrency controls, compatibility, logs, monitoring, and tests.',
+  'LOC, file count, and dependency count are optimization metrics only after correctness, security, regression tests, and project-rule gates pass.',
   'Precedence: company safety and quality boundaries, then current-project rules,',
 ];
 
