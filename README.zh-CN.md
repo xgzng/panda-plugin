@@ -124,14 +124,51 @@ $panda:panda-review
 $panda:panda-audit
 ```
 
+## 与 SDD 配合
+
+Panda 可以和 OpenSpec、Superpowers 等 SDD 工具同时使用，但职责不同：
+
+- OpenSpec 负责明确需求、规格、任务和验收条件。
+- Superpowers 负责需求分析、计划、测试驱动开发和验证流程。
+- Panda 负责公司安全底线、当前项目规则、优先复用和最小正确实现。
+
+安装并启用 Hooks 后，Panda 默认以 `full` 模式持续生效，无需在每个
+SDD 阶段重复调用或切换模式。Panda 不会自动启动或替代 OpenSpec、
+Superpowers；开发完成后仍需主动调用 `panda-review` 检查过度设计。
+
+推荐流程：
+
+```text
+OpenSpec：Explore / Propose -> Design / Tasks -> Apply -> Verify / Archive
+Panda：   全程约束公司边界、项目规则、复用和实现复杂度
+
+Superpowers：Brainstorm -> Plan -> Build / TDD -> Verify
+Panda：       全程约束公司边界、项目规则、复用和实现复杂度
+
+提交前：panda-review
+```
+
 ## 模式
 
-| 模式 | 行为 |
-|---|---|
-| `lite` | 完成需求，并简要指出更简单的替代方案。 |
-| `full` | 强制执行复用和最小实现判断顺序，默认模式。 |
-| `ultra` | 质疑推测性需求，优先删除再考虑新增。 |
-| `off` | 关闭 Panda 的持续指导。 |
+默认使用 `full`，并在当前会话持续生效。只有需要调整约束强度或临时
+关闭时才切换，不需要按开发阶段切换。
+
+| 模式 | 行为 | Codex 当前会话 | Claude Code 当前会话 |
+|---|---|---|---|
+| `lite` | 完成需求，并简要指出更简单的替代方案。 | `$panda:panda lite` | `/panda lite` |
+| `full` | 强制执行复用和最小实现判断顺序，默认模式。 | `$panda:panda full` | `/panda full` |
+| `ultra` | 质疑推测性需求，优先删除再考虑新增。 | `$panda:panda ultra` | `/panda ultra` |
+| `off` | 关闭 Panda 的持续指导。 | `$panda:panda off` | `/panda off` |
+
+不带参数调用 `$panda:panda`（Codex）或 `/panda`（Claude Code）可查看
+当前模式。会话内切换只持续到会话结束。
+
+永久修改新会话的默认模式：
+
+```text
+Codex：$panda:panda default lite
+Claude Code：/panda default lite
+```
 
 通过 `PANDA_DEFAULT_MODE=lite|full|ultra|off` 设置默认模式，或者创建配置：
 

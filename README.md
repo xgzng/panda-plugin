@@ -152,14 +152,55 @@ $panda:panda-review
 $panda:panda-audit
 ```
 
+## Using Panda with SDD
+
+Panda works alongside SDD tools such as OpenSpec and Superpowers. Their roles
+are complementary:
+
+- OpenSpec defines requirements, specifications, tasks, and acceptance criteria.
+- Superpowers drives discovery, planning, test-driven development, and verification.
+- Panda enforces company safety boundaries, current-project rules, reuse, and the
+  smallest correct implementation.
+
+After installation with trusted hooks, Panda stays active in the default `full`
+mode. It does not need to be invoked or switched at every SDD stage. Panda does
+not start or replace OpenSpec or Superpowers; invoke `panda-review` explicitly
+after implementation to check the diff for over-engineering.
+
+Recommended flow:
+
+```text
+OpenSpec: Explore / Propose -> Design / Tasks -> Apply -> Verify / Archive
+Panda:    Enforce company boundaries, project rules, reuse, and complexity throughout
+
+Superpowers: Brainstorm -> Plan -> Build / TDD -> Verify
+Panda:       Enforce company boundaries, project rules, reuse, and complexity throughout
+
+Before commit: panda-review
+```
+
 ## Modes
 
-| Mode | Behaviour |
-|---|---|
-| `lite` | Build the requested solution and briefly identify the simpler alternative. |
-| `full` | Enforce the reuse and minimum-implementation ladder. Default. |
-| `ultra` | Challenge speculative requirements and prefer deletion before addition. |
-| `off` | Disable persistent Panda guidance. |
+The default is `full`, and the selected mode persists for the current session.
+Switch only when changing the enforcement level or disabling Panda, not between
+development stages.
+
+| Mode | Behaviour | Codex, current session | Claude Code, current session |
+|---|---|---|---|
+| `lite` | Build the requested solution and briefly identify the simpler alternative. | `$panda:panda lite` | `/panda lite` |
+| `full` | Enforce the reuse and minimum-implementation ladder. Default. | `$panda:panda full` | `/panda full` |
+| `ultra` | Challenge speculative requirements and prefer deletion before addition. | `$panda:panda ultra` | `/panda ultra` |
+| `off` | Disable persistent Panda guidance. | `$panda:panda off` | `/panda off` |
+
+Call `$panda:panda` in Codex or `/panda` in Claude Code without an argument to
+show the current mode. Session switches last until the session ends.
+
+To change the default for new sessions permanently:
+
+```text
+Codex: $panda:panda default lite
+Claude Code: /panda default lite
+```
 
 Set the default with `PANDA_DEFAULT_MODE=lite|full|ultra|off`, or create:
 
