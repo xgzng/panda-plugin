@@ -69,6 +69,18 @@ test('quality gates take precedence over reduction metrics', () => {
   }
 });
 
+test('Panda is authoritative when Ponytail is also active', () => {
+  const rule = 'When Ponytail is also active, Panda is authoritative: follow Panda when guidance differs, and do not repeat Ponytail\'s minimization pass.';
+  const ruleSources = [
+    'skills/panda/SKILL.md',
+    '.openclaw/skills/panda/SKILL.md',
+  ];
+
+  for (const relPath of ruleSources) {
+    assert.ok(read(relPath).includes(rule), `${relPath} is missing the Panda precedence rule`);
+  }
+});
+
 test('Panda manifests point users to Panda while preserving upstream notices separately', () => {
   const manifests = [
     'package.json',

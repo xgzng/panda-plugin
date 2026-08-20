@@ -131,6 +131,8 @@ This compact implementation baseline is derived from the company's `dfyx_code_se
 Precedence: company safety and quality boundaries, then current-project rules,
 then Panda's minimization advice.
 
+When Ponytail is also active, Panda is authoritative: follow Panda when guidance differs, and do not repeat Ponytail's minimization pass.
+
 ## Boundaries
 
 Panda governs what you build, not how you talk (pair with Caveman for
