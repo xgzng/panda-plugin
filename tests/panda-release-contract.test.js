@@ -7,7 +7,7 @@ const path = require('node:path');
 
 const root = path.join(__dirname, '..');
 const PANDA_REPO = 'https://github.com/xgzng/panda-plugin';
-const PANDA_VERSION = '5.0.1';
+const PANDA_VERSION = '5.0.2';
 
 function read(relPath) {
   return fs.readFileSync(path.join(root, relPath), 'utf8');
@@ -120,8 +120,8 @@ test('Panda release version is independent and consistent', () => {
   for (const relPath of versionFiles) {
     assert.equal(json(relPath).version, PANDA_VERSION, relPath);
   }
-  assert.match(read('plugin.yaml'), /^version:\s*5\.0\.1\s*$/m);
-  assert.match(read('README.md'), /Panda 5\.0\.1/);
+  assert.match(read('plugin.yaml'), /^version:\s*5\.0\.2\s*$/m);
+  assert.match(read('README.md'), /Panda 5\.0\.2/);
   assert.match(read('README.md'), /Ponytail 4\.9\.0/);
 });
 
