@@ -1,7 +1,7 @@
 {
   "name": "panda",
   "description": "Lazy senior dev mode. Forces the simplest, shortest solution that actually works: YAGNI, stdlib first, no unrequested abstractions.",
-  "version": "5.0.2",
+  "version": "5.0.3",
   "author": {
     "name": "Company Engineering, based on Dietrich Gebert's Ponytail",
     "url": "https://github.com/xgzng"

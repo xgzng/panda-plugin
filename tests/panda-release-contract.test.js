@@ -7,7 +7,7 @@ const path = require('node:path');
 
 const root = path.join(__dirname, '..');
 const PANDA_REPO = 'https://github.com/xgzng/panda-plugin';
-const PANDA_VERSION = '5.0.2';
+const PANDA_VERSION = '5.0.3';
 
 function read(relPath) {
   return fs.readFileSync(path.join(root, relPath), 'utf8');
@@ -81,6 +81,29 @@ test('Panda is authoritative when Ponytail is also active', () => {
   }
 });
 
+test('Panda constrains every change to the requested scope', () => {
+  const requiredMarkers = [
+    '## Surgical changes',
+    'Every changed line must trace to the user request, a necessary affected call chain, or required verification.',
+    'Do not opportunistically refactor, reformat, clean up, or improve adjacent or unrelated code.',
+    'Remove only imports, variables, functions, or files made unused by the current change.',
+    'Inspect existing worktree changes before editing. Preserve pre-existing user changes;',
+    'Cross-module changes are allowed only when required by the real call chain or root cause',
+    'Before finishing, inspect the diff and remove changes that cannot be justified by the request, its necessary call chain, or required verification.',
+  ];
+  const skillCopies = [
+    'skills/panda/SKILL.md',
+    '.openclaw/skills/panda/SKILL.md',
+  ];
+
+  for (const relPath of skillCopies) {
+    const skill = read(relPath);
+    for (const marker of requiredMarkers) {
+      assert.ok(skill.includes(marker), `${relPath} is missing scope control: ${marker}`);
+    }
+  }
+});
+
 test('Panda manifests point users to Panda while preserving upstream notices separately', () => {
   const manifests = [
     'package.json',
@@ -120,8 +143,8 @@ test('Panda release version is independent and consistent', () => {
   for (const relPath of versionFiles) {
     assert.equal(json(relPath).version, PANDA_VERSION, relPath);
   }
-  assert.match(read('plugin.yaml'), /^version:\s*5\.0\.2\s*$/m);
-  assert.match(read('README.md'), /Panda 5\.0\.2/);
+  assert.match(read('plugin.yaml'), /^version:\s*5\.0\.3\s*$/m);
+  assert.match(read('README.md'), /Panda 5\.0\.3/);
   assert.match(read('README.md'), /Ponytail 4\.9\.0/);
 });
 

@@ -51,6 +51,19 @@ every sibling caller still broken. Fix it once, where all callers route through.
 - Two stdlib options, same size? Take the one that's correct on edge cases. Lazy means writing less code, not picking the flimsier algorithm.
 - Mark deliberate simplifications that cut a real corner with a known ceiling (global lock, O(n²) scan, naive heuristic) with a `panda:` comment naming the ceiling and upgrade path (`# panda: global lock, per-account locks if throughput matters`).
 
+## Surgical changes
+
+Touch only what the request requires. Every changed line must trace to the user request, a necessary affected call chain, or required verification.
+
+- Do not opportunistically refactor, reformat, clean up, or improve adjacent or unrelated code.
+- Match the repository's existing style, even when another style would be preferable.
+- Mention unrelated dead code or technical debt instead of deleting it.
+- Remove only imports, variables, functions, or files made unused by the current change.
+- Inspect existing worktree changes before editing. Preserve pre-existing user changes; if ownership is ambiguous or overlapping changes cannot be merged safely, stop and ask rather than overwrite or revert them.
+- Cross-module changes are allowed only when required by the real call chain or root cause; explain that relationship in the completion note.
+
+Before finishing, inspect the diff and remove changes that cannot be justified by the request, its necessary call chain, or required verification.
+
 ## Output
 
 Code first. Then at most three short lines: what was skipped, when to add it.

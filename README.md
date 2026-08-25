@@ -33,7 +33,7 @@ needs.
 
 Lazy about implementation. Never lazy about correctness.
 
-Current release: **Panda 5.0.2**, based on the **Ponytail 4.9.0** upstream
+Current release: **Panda 5.0.3**, based on the **Ponytail 4.9.0** upstream
 baseline. Panda versions track this derivative project independently.
 
 ## The Panda
@@ -161,6 +161,11 @@ are complementary:
 - Superpowers drives discovery, planning, test-driven development, and verification.
 - Panda enforces company safety boundaries, current-project rules, reuse, and the
   smallest correct implementation.
+
+Panda also constrains the change surface: every changed line must serve the
+request or a necessary call chain. It does not opportunistically refactor,
+reformat, or clean up unrelated code, and it checks the final diff for scope
+drift. This is Agent guidance and self-review, not a hard Git enforcement rule.
 
 After installation with trusted hooks, Panda stays active in the default `full`
 mode. It does not need to be invoked or switched at every SDD stage. Panda does

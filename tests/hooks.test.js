@@ -71,6 +71,7 @@ assert.match(
   /PANDA MODE ACTIVE — level: ultra/,
 );
 assert.match(output.hookSpecificOutput.additionalContext, /## Company rules/);
+assert.match(output.hookSpecificOutput.additionalContext, /## Surgical changes/);
 assert.match(output.hookSpecificOutput.additionalContext, /current\s+project's native instructions/);
 assert.equal(
   (output.hookSpecificOutput.additionalContext.match(/## Company rules/g) || []).length,
