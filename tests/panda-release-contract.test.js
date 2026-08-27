@@ -7,7 +7,7 @@ const path = require('node:path');
 
 const root = path.join(__dirname, '..');
 const PANDA_REPO = 'https://github.com/xgzng/panda-plugin';
-const PANDA_VERSION = '5.0.3';
+const PANDA_VERSION = '5.0.4';
 
 function read(relPath) {
   return fs.readFileSync(path.join(root, relPath), 'utf8');
@@ -104,6 +104,29 @@ test('Panda constrains every change to the requested scope', () => {
   }
 });
 
+test('Panda presents Surgical Changes as a core capability', () => {
+  const expected = [
+    '## Core capabilities',
+    '**Surgical Changes:** Keep every changed line tied to the request',
+  ];
+  const sources = [
+    'skills/panda/SKILL.md',
+    '.openclaw/skills/panda/SKILL.md',
+    'skills/panda-help/SKILL.md',
+    '.openclaw/skills/panda-help/SKILL.md',
+    'README.md',
+  ];
+
+  for (const relPath of sources) {
+    const content = read(relPath);
+    for (const marker of expected) {
+      assert.ok(content.includes(marker), `${relPath} is missing capability summary: ${marker}`);
+    }
+  }
+
+  assert.match(read('README.zh-CN.md'), /\*\*外科手术式修改：\*\*每一处改动都必须服务于当前需求/);
+});
+
 test('Panda manifests point users to Panda while preserving upstream notices separately', () => {
   const manifests = [
     'package.json',
@@ -143,8 +166,8 @@ test('Panda release version is independent and consistent', () => {
   for (const relPath of versionFiles) {
     assert.equal(json(relPath).version, PANDA_VERSION, relPath);
   }
-  assert.match(read('plugin.yaml'), /^version:\s*5\.0\.3\s*$/m);
-  assert.match(read('README.md'), /Panda 5\.0\.3/);
+  assert.match(read('plugin.yaml'), /^version:\s*5\.0\.4\s*$/m);
+  assert.match(read('README.md'), /Panda 5\.0\.4/);
   assert.match(read('README.md'), /Ponytail 4\.9\.0/);
 });
 

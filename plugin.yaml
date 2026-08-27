@@ -1,5 +1,5 @@
 name: panda
-version: 5.0.3
+version: 5.0.4
 description: Company AI coding guardrails based on Ponytail, with always-on context, bundled skills, and slash commands.
 author: Company Engineering, based on Dietrich Gebert's Ponytail
 provides_hooks:

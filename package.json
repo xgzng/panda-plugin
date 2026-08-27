@@ -1,6 +1,6 @@
 {
   "name": "panda-company-plugin",
-  "version": "5.0.3",
+  "version": "5.0.4",
   "description": "Company AI coding guardrails based on Ponytail.",
   "keywords": ["opencode-plugin", "opencode", "panda", "ponytail", "pi-package", "skills", "qoder"],
   "license": "MIT",

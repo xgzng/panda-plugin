@@ -10,6 +10,12 @@ license: MIT
 Display this reference card when invoked. One-shot, do NOT change mode,
 write flag files, or persist anything.
 
+## Core capabilities
+
+- **Minimal implementation:** Reuse first, then add only the minimum compliant code.
+- **Surgical Changes:** Keep every changed line tied to the request, its necessary call chain, or required verification; do not casually modify unrelated modules.
+- **Quality boundaries:** Security, correctness, project rules, and required tests are never simplified away.
+
 ## Levels
 
 | Level | Trigger | What change |
@@ -24,7 +30,7 @@ Level sticks until changed or session end.
 
 | Skill | Trigger | What it does |
 |-------|---------|--------------|
-| **panda** | `/panda` | Lazy mode itself. Simplest solution that works. |
+| **panda** | `/panda` | Minimum compliant implementation plus Surgical Changes scope control. |
 | **panda-review** | `/panda-review` | Over-engineering review: `L42: yagni: factory, one product. Inline.` |
 | **panda-audit** | `/panda-audit` | Whole-repo over-engineering audit: ranked list of what to delete. |
 | **panda-debt** | `/panda-debt` | Harvest `panda:` shortcut comments into a tracked ledger. |

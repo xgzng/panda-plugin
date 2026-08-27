@@ -33,8 +33,14 @@ needs.
 
 Lazy about implementation. Never lazy about correctness.
 
-Current release: **Panda 5.0.3**, based on the **Ponytail 4.9.0** upstream
+Current release: **Panda 5.0.4**, based on the **Ponytail 4.9.0** upstream
 baseline. Panda versions track this derivative project independently.
+
+## Core capabilities
+
+- **Minimal implementation:** Understand the real flow, reuse existing capabilities, and add only the minimum compliant code.
+- **Surgical Changes:** Keep every changed line tied to the request, its necessary call chain, or required verification; do not casually refactor, format, clean up, or modify unrelated modules.
+- **Quality boundaries:** Never trade security, correctness, company and project rules, or required tests for fewer lines.
 
 ## The Panda
 
