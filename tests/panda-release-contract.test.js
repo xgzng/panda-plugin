@@ -7,7 +7,7 @@ const path = require('node:path');
 
 const root = path.join(__dirname, '..');
 const PANDA_REPO = 'https://github.com/xgzng/panda-plugin';
-const PANDA_VERSION = '5.0.5';
+const PANDA_VERSION = '5.0.6';
 
 function read(relPath) {
   return fs.readFileSync(path.join(root, relPath), 'utf8');
@@ -140,6 +140,22 @@ test('Panda discovery descriptions advertise Surgical Changes', () => {
   assert.match(codexManifest.interface.longDescription, /unrelated modules/);
 });
 
+test('Codex default prompts fit the interface limit and preserve Panda guidance', () => {
+  const prompts = json('.codex-plugin/plugin.json').interface.defaultPrompt;
+
+  assert.ok(Array.isArray(prompts), 'defaultPrompt must be an array');
+  assert.ok(prompts.length <= 3, 'Codex supports at most three default prompts');
+  for (const prompt of prompts) {
+    assert.ok(prompt.length <= 128, `default prompt exceeds 128 characters: ${prompt}`);
+  }
+
+  const combined = prompts.join(' ');
+  assert.match(combined, /Panda mode/);
+  assert.match(combined, /over-engineering/);
+  assert.match(combined, /unrelated changes/);
+  assert.match(combined, /smallest correct and compliant implementation/);
+});
+
 test('Panda manifests point users to Panda while preserving upstream notices separately', () => {
   const manifests = [
     'package.json',
@@ -179,8 +195,8 @@ test('Panda release version is independent and consistent', () => {
   for (const relPath of versionFiles) {
     assert.equal(json(relPath).version, PANDA_VERSION, relPath);
   }
-  assert.match(read('plugin.yaml'), /^version:\s*5\.0\.5\s*$/m);
-  assert.match(read('README.md'), /Panda 5\.0\.5/);
+  assert.match(read('plugin.yaml'), /^version:\s*5\.0\.6\s*$/m);
+  assert.match(read('README.md'), /Panda 5\.0\.6/);
   assert.match(read('README.md'), /Ponytail 4\.9\.0/);
 });
 

@@ -33,7 +33,7 @@ needs.
 
 Lazy about implementation. Never lazy about correctness.
 
-Current release: **Panda 5.0.5**, based on the **Ponytail 4.9.0** upstream
+Current release: **Panda 5.0.6**, based on the **Ponytail 4.9.0** upstream
 baseline. Panda versions track this derivative project independently.
 
 ## Core capabilities

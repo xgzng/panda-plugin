@@ -1,6 +1,6 @@
 {
   "name": "panda",
-  "version": "5.0.5",
+  "version": "5.0.6",
   "description": "Company AI coding guardrails based on Ponytail: reuse first, minimum compliant implementation, and Surgical Changes that avoid unrelated edits.",
   "author": {
     "name": "Company Engineering"
@@ -19,10 +19,9 @@
     "capabilities": ["Instructions", "Lifecycle hooks"],
     "websiteURL": "https://github.com/xgzng/panda-plugin",
     "defaultPrompt": [
-      "Use Panda mode for this task.",
-      "Review this diff for over-engineering.",
-      "Find the smallest correct implementation.",
-      "Modify only code required by the request and its necessary call chain; do not change unrelated modules."
+      "Use Panda mode and modify only code required by this task.",
+      "Review this diff for over-engineering and unrelated changes.",
+      "Find the smallest correct and compliant implementation."
     ],
     "brandColor": "#111111",
     "composerIcon": "./assets/logo.png",
