@@ -17,7 +17,7 @@ const ROOT = path.join(__dirname, '..');
 const HOMEPAGE = 'https://github.com/xgzng/panda-plugin';
 
 const DESCRIPTIONS = {
-  'panda': 'Company coding guardrails for any coding task: project rules, reuse first, minimum compliant implementation, no unrequested abstractions.',
+  'panda': 'Company coding guardrails: project rules, reuse first, minimum compliant implementation, and Surgical Changes that prevent unrelated edits.',
   'panda-review': 'Review a diff for over-engineering. Finds what to delete: reinvented stdlib, needless deps, speculative abstractions. One line per finding.',
   'panda-audit': 'Audit the whole repo for over-engineering. A ranked list of what to delete, simplify, or replace with stdlib or native features.',
   'panda-debt': 'Harvest every panda: or legacy ponytail: shortcut comment into one debt ledger. One-shot report.',

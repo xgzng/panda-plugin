@@ -1,7 +1,7 @@
 {
   "name": "panda",
-  "version": "5.0.4",
-  "description": "Company AI coding guardrails based on Ponytail: reuse first, minimum compliant implementation, no unrequested abstractions.",
+  "version": "5.0.5",
+  "description": "Company AI coding guardrails based on Ponytail: reuse first, minimum compliant implementation, and Surgical Changes that avoid unrelated edits.",
   "author": {
     "name": "Company Engineering"
   },
@@ -12,8 +12,8 @@
   "skills": "./skills/",
   "interface": {
     "displayName": "Panda",
-    "shortDescription": "Minimum compliant implementation",
-    "longDescription": "Follow project rules, reuse existing capabilities, and prefer the smallest correct, secure, maintainable implementation.",
+    "shortDescription": "Minimum compliant, surgical changes",
+    "longDescription": "Follow company and project rules, reuse existing capabilities, implement the smallest correct, secure, maintainable solution, and keep every change strictly within the requested scope without modifying unrelated modules.",
     "developerName": "Company Engineering, based on Ponytail",
     "category": "Productivity",
     "capabilities": ["Instructions", "Lifecycle hooks"],
@@ -21,7 +21,8 @@
     "defaultPrompt": [
       "Use Panda mode for this task.",
       "Review this diff for over-engineering.",
-      "Find the smallest correct implementation."
+      "Find the smallest correct implementation.",
+      "Modify only code required by the request and its necessary call chain; do not change unrelated modules."
     ],
     "brandColor": "#111111",
     "composerIcon": "./assets/logo.png",

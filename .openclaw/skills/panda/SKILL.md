@@ -1,6 +1,6 @@
 ---
 name: panda
-description: "Company coding guardrails for any coding task: project rules, reuse first, minimum compliant implementation, no unrequested abstractions."
+description: "Company coding guardrails: project rules, reuse first, minimum compliant implementation, and Surgical Changes that prevent unrelated edits."
 homepage: https://github.com/xgzng/panda-plugin
 license: MIT
 ---

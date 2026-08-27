@@ -2,9 +2,10 @@
 name: panda
 description: >
   Use when writing, adding, refactoring, fixing, reviewing, or designing code;
-  choosing dependencies; or when a request mentions Panda, YAGNI, minimal
-  solutions, over-engineering, bloat, boilerplate, or unnecessary dependencies.
-  Do not use for non-coding requests.
+  choosing dependencies; preventing scope drift, opportunistic refactoring,
+  formatting, cleanup, or unrelated module edits through Surgical Changes;
+  or when a request mentions Panda, YAGNI, minimal solutions, over-engineering,
+  bloat, boilerplate, or unnecessary dependencies. Do not use for non-coding requests.
 ---
 
 # Panda
