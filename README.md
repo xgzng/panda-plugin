@@ -40,7 +40,21 @@ baseline. Panda versions track this derivative project independently.
 
 - **Minimal implementation:** Understand the real flow, reuse existing capabilities, and add only the minimum compliant code.
 - **Surgical Changes:** Keep every changed line tied to the request, its necessary call chain, or required verification; do not casually refactor, format, clean up, or modify unrelated modules.
+- **Project-rule discovery:** Before implementation, check the active repository and target-file scope for applicable instruction entry points and their task-relevant references.
 - **Quality boundaries:** Never trade security, correctness, company and project rules, or required tests for fewer lines.
+
+## What Panda adds to Ponytail
+
+Panda keeps Ponytail's reuse-first, anti-over-engineering approach and adds four company-oriented guardrails:
+
+| Addition | Effect |
+|---|---|
+| **Company safety baseline** | Transactions, idempotency, authorization, concurrency controls, logging, monitoring, and required tests cannot be simplified away. |
+| **Project-rule discovery** | Before selecting an implementation, the agent checks applicable `AGENTS.md`, `CLAUDE.md`, and other native rule entry points instead of relying only on rules the host happened to preload. |
+| **Fixed precedence** | Company safety and quality boundaries > current-project rules > Panda's minimization advice. |
+| **Surgical Changes** | Requirement A changes only the code required for A, its necessary call chain, and verification; unrelated module B is not casually refactored, formatted, or cleaned up. |
+
+These are Agent instructions and self-checks, not a filesystem sandbox or hard code-level blocker. They reduce scope drift while still allowing necessary cross-module root-cause fixes.
 
 ## The Panda
 
@@ -107,7 +121,7 @@ codex plugin marketplace add xgzng/panda-plugin
 codex plugin add panda@panda
 ```
 
-Run `codex` and open `/hooks`, review and trust its two lifecycle hooks, and
+Run `codex` and open `/hooks`, review and trust its three lifecycle hooks, and
 start a new thread.
 
 This same install also covers the Codex desktop app: restart the app after
