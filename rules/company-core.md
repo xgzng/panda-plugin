@@ -8,6 +8,8 @@ Apply these rules in every company repository. Also follow the current project's
 ## Engineering floor
 
 - Understand the affected flow and repository conventions before choosing the smallest solution.
+- Before choosing an implementation or editing files, check the current repository and target-file scope for applicable project-instruction entry points such as `AGENTS.md`, `CLAUDE.md`, `.github/copilot-instructions.md`, `.cursor/rules/`, `GEMINI.md`, and `.windsurf/rules/`.
+- Use instructions already supplied by the host without re-reading them; otherwise read the applicable entry points and only task-relevant files they explicitly reference. Respect nested instruction scope. If none exist, continue with company and Panda rules; do not recursively scan arbitrary rule directories.
 - Reuse existing layers, components, utilities, platform capabilities, and installed dependencies.
 - Optimize for the smallest compliant implementation, not the fewest lines in isolation.
 - Never simplify away security, authorization, trust-boundary validation, error handling, or data integrity.

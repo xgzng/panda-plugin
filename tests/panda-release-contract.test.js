@@ -4,10 +4,11 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
+const { getPonytailInstructions } = require('../hooks/ponytail-instructions');
 
 const root = path.join(__dirname, '..');
 const PANDA_REPO = 'https://github.com/xgzng/panda-plugin';
-const PANDA_VERSION = '5.0.6';
+const PANDA_VERSION = '5.0.7';
 
 function read(relPath) {
   return fs.readFileSync(path.join(root, relPath), 'utf8');
@@ -66,6 +67,36 @@ test('quality gates take precedence over reduction metrics', () => {
 
   for (const relPath of ruleSources) {
     assert.ok(read(relPath).includes(requiredRule), `${relPath} is missing the quality-gate rule`);
+  }
+});
+
+test('Panda checks applicable project-rule entry points before implementation', () => {
+  const requiredMarkers = [
+    'Before choosing an implementation or editing files, check the current repository and target-file scope for applicable project-instruction entry points',
+    'Use instructions already supplied by the host without re-reading them',
+    'Respect nested instruction scope.',
+    'If none exist, continue with company and Panda rules; do not recursively scan arbitrary rule directories.',
+  ];
+  const ruleSources = [
+    'rules/company-core.md',
+    'skills/panda/SKILL.md',
+    '.openclaw/skills/panda/SKILL.md',
+    'AGENTS.md',
+  ];
+
+  for (const relPath of ruleSources) {
+    const rules = read(relPath);
+    for (const marker of requiredMarkers) {
+      assert.ok(rules.includes(marker), `${relPath} is missing project-rule discovery guidance: ${marker}`);
+    }
+  }
+});
+
+test('every active Panda mode injects project-rule discovery guidance', () => {
+  const marker = 'Before choosing an implementation or editing files, check the current repository and target-file scope';
+
+  for (const mode of ['lite', 'full', 'ultra']) {
+    assert.ok(getPonytailInstructions(mode).includes(marker), `${mode} is missing project-rule discovery guidance`);
   }
 });
 
@@ -195,8 +226,8 @@ test('Panda release version is independent and consistent', () => {
   for (const relPath of versionFiles) {
     assert.equal(json(relPath).version, PANDA_VERSION, relPath);
   }
-  assert.match(read('plugin.yaml'), /^version:\s*5\.0\.6\s*$/m);
-  assert.match(read('README.md'), /Panda 5\.0\.6/);
+  assert.match(read('plugin.yaml'), /^version:\s*5\.0\.7\s*$/m);
+  assert.match(read('README.md'), /Panda 5\.0\.7/);
   assert.match(read('README.md'), /Ponytail 4\.9\.0/);
 });
 

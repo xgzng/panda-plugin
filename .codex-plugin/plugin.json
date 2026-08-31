@@ -1,6 +1,6 @@
 {
   "name": "panda",
-  "version": "5.0.6",
+  "version": "5.0.7",
   "description": "Company AI coding guardrails based on Ponytail: reuse first, minimum compliant implementation, and Surgical Changes that avoid unrelated edits.",
   "author": {
     "name": "Company Engineering"

@@ -55,6 +55,8 @@ const INVARIANTS = [
   'security',
   'accessibility',
   'Lazy code without its check is unfinished', // one-check promoted to headline
+  'Before choosing an implementation or editing files, check the current repository and target-file scope for applicable project-instruction entry points',
+  'If none exist, continue with company and Panda rules; do not recursively scan arbitrary rule directories.',
   'Preserve required transactions, idempotency, concurrency controls, compatibility, logs, monitoring, and tests.',
   'LOC, file count, and dependency count are optimization metrics only after correctness, security, regression tests, and project-rule gates pass.',
   'Precedence: company safety and quality boundaries, then current-project rules,',

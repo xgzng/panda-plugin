@@ -33,7 +33,7 @@ needs.
 
 Lazy about implementation. Never lazy about correctness.
 
-Current release: **Panda 5.0.6**, based on the **Ponytail 4.9.0** upstream
+Current release: **Panda 5.0.7**, based on the **Ponytail 4.9.0** upstream
 baseline. Panda versions track this derivative project independently.
 
 ## Core capabilities
@@ -229,10 +229,13 @@ with upstream configuration and future merges.
 
 ## Project rules
 
-Panda does not scan every repository on the machine. It works with the active
-host's native project-rule mechanism, including `AGENTS.md`, `CLAUDE.md`,
+Panda does not scan every repository on the machine. Before choosing an
+implementation or editing files, it checks the active repository and target-file
+scope for native project-rule entry points such as `AGENTS.md`, `CLAUDE.md`,
 `.github/copilot-instructions.md`, `.cursor/rules/`, `GEMINI.md`, and
-`.windsurf/rules/`.
+`.windsurf/rules/`. It reuses instructions already supplied by the host; otherwise
+it reads applicable entry points and only task-relevant files they explicitly
+reference. It does not recursively scan arbitrary rule directories.
 
 The shared company boundaries live in
 [`rules/company-core.md`](rules/company-core.md).

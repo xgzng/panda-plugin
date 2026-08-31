@@ -29,7 +29,7 @@ Panda 是一套面向 AI 编程 Agent 的规则、Skills、插件和生命周期
 
 实现上可以懒，正确性上绝不偷懒。
 
-当前版本：**Panda 5.0.6**，上游基线为 **Ponytail 4.9.0**。Panda 从该版本
+当前版本：**Panda 5.0.7**，上游基线为 **Ponytail 4.9.0**。Panda 从该版本
 开始使用独立版本号，不再把上游版本号当作自己的发布版本。
 
 ## 核心能力
@@ -195,7 +195,7 @@ Claude Code：/panda default lite
 
 ## 项目规则
 
-Panda 不会扫描电脑上的所有仓库。它通过当前 Agent 原生的项目规则机制工作，包括 `AGENTS.md`、`CLAUDE.md`、`.github/copilot-instructions.md`、`.cursor/rules/`、`GEMINI.md` 和 `.windsurf/rules/`。
+Panda 不会扫描电脑上的所有仓库。在选择实现方案或修改文件前，它会检查当前仓库和目标文件作用域内的项目规则入口，例如 `AGENTS.md`、`CLAUDE.md`、`.github/copilot-instructions.md`、`.cursor/rules/`、`GEMINI.md` 和 `.windsurf/rules/`。宿主已经注入的规则会直接复用；否则只读取适用入口及其明确引用、与当前任务相关的规则文件，不会递归扫描任意规则目录。
 
 公司级公共边界位于 [`rules/company-core.md`](rules/company-core.md)。
 
