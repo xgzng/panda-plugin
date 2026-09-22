@@ -42,34 +42,35 @@ for (const [relPath, normalize] of copies) {
 // a rule's wording trips this, which is the reminder to propagate it everywhere.
 // Upgrade path: generate the copies from SKILL.md if this ever misses a real drift.
 const INVARIANTS = [
-  'in this codebase',                      // ladder rung: reuse what already exists (#217)
-  'naive heuristic',                       // ceiling-comment rule
-  'ONE runnable check',                    // test reflex
-  'flimsier algorithm',                    // robust-variant rule
+  ['in this codebase', '代码库里已经有了吗'],
+  ['naive heuristic', '`panda:` 注释说明上限和升级条件'],
+  ['ONE runnable check', '没有验证的非平凡代码不算完成'],
+  ['flimsier algorithm', '更脆弱的算法'],
   // the four "not lazy about" safety carve-outs: pin each so a reword in either
   // file can't silently drop one. Only validation was pinned before. These are the
   // continuous substrings present in both files ("prevents data loss" because the
   // full "error handling that prevents data loss" wraps a line in SKILL.md).
-  'input validation at trust boundaries',
-  'prevents data loss',
-  'security',
-  'accessibility',
-  'Lazy code without its check is unfinished', // one-check promoted to headline
-  'Before choosing an implementation or editing files, check the current repository and target-file scope for applicable project-instruction entry points',
-  'If none exist, continue with company and Panda rules; do not recursively scan arbitrary rule directories.',
-  'Preserve required transactions, idempotency, concurrency controls, compatibility, logs, monitoring, and tests.',
-  'LOC, file count, and dependency count are optimization metrics only after correctness, security, regression tests, and project-rule gates pass.',
-  'Precedence: company safety and quality boundaries, then current-project rules,',
+  ['input validation at trust boundaries', '信任边界的输入校验'],
+  ['prevents data loss', '防止数据丢失'],
+  ['security', '安全'],
+  ['accessibility', '无障碍'],
+  ['Lazy code without its check is unfinished', '没有验证的非平凡代码不算完成'],
+  ['Before choosing an implementation or editing files, check the current repository and target-file scope for applicable project-instruction entry points', '在选择实现或编辑文件前，检查当前仓库及目标文件作用域内适用的项目规则入口'],
+  ['If none exist, continue with company and Panda rules; do not recursively scan arbitrary rule directories.', '未发现入口时，继续执行公司规则和 Panda 规则；不要递归扫描任意规则目录。'],
+  ['Preserve required transactions, idempotency, concurrency controls, compatibility, logs, monitoring, and tests.', '保留需求所需的事务、幂等、并发控制、兼容性、日志、监控和测试。'],
+  ['LOC, file count, and dependency count are optimization metrics only after correctness, security, regression tests, and project-rule gates pass.', 'LOC、文件数和依赖数只有在正确性、安全性、回归测试和项目规则门禁通过后，才是优化指标。'],
+  ['Precedence: company safety and quality boundaries, then current-project rules,', '裁决顺序：公司安全与质量边界 > 当前项目规则 > Panda 最小实现建议。'],
 ];
 
 const skill = read('skills/panda/SKILL.md');
-const sources = [['skills/panda/SKILL.md', skill], ['AGENTS.md', agents]];
-for (const phrase of INVARIANTS) {
-  for (const [label, text] of sources) {
-    if (!text.includes(phrase)) {
-      console.error(`${label} is missing rule invariant: "${phrase}"`);
-      failed = true;
-    }
+for (const [agentsPhrase, skillPhrase] of INVARIANTS) {
+  if (!agents.includes(agentsPhrase)) {
+    console.error(`AGENTS.md is missing rule invariant: "${agentsPhrase}"`);
+    failed = true;
+  }
+  if (!skill.includes(skillPhrase)) {
+    console.error(`skills/panda/SKILL.md is missing rule invariant: "${skillPhrase}"`);
+    failed = true;
   }
 }
 

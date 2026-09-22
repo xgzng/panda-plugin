@@ -8,7 +8,7 @@ const { getPonytailInstructions } = require('../hooks/ponytail-instructions');
 
 const root = path.join(__dirname, '..');
 const PANDA_REPO = 'https://github.com/xgzng/panda-plugin';
-const PANDA_VERSION = '5.0.7';
+const PANDA_VERSION = '5.0.8';
 
 function read(relPath) {
   return fs.readFileSync(path.join(root, relPath), 'utf8');
@@ -19,19 +19,24 @@ function json(relPath) {
 }
 
 test('skill-only installs carry every company rule', () => {
-  const companyRules = read('rules/company-core.md')
-    .split(/\r?\n/)
-    .filter((line) => line.startsWith('- '));
+  const requiredMarkers = [
+    '在选择最小方案前，先理解受影响流程和仓库约定。',
+    '检查当前仓库及目标文件作用域内适用的项目规则入口',
+    '优先复用已有分层、组件、工具类、平台能力和已安装依赖。',
+    '保留需求所需的事务、幂等、并发控制、兼容性、日志、监控和测试。',
+    '不得仅为了减少代码而绕过既有架构边界。',
+    '所有外部输入都视为不可信',
+    '通过显式状态流转检查、原子更新、事务、幂等、并发控制',
+  ];
   const skillCopies = [
     'skills/panda/SKILL.md',
     '.openclaw/skills/panda/SKILL.md',
   ];
 
-  assert.ok(companyRules.length >= 7, 'expected the company rule baseline');
   for (const relPath of skillCopies) {
     const skill = read(relPath);
-    for (const rule of companyRules) {
-      assert.ok(skill.includes(rule), `${relPath} is missing company rule: ${rule}`);
+    for (const marker of requiredMarkers) {
+      assert.ok(skill.includes(marker), `${relPath} is missing company rule: ${marker}`);
     }
   }
 });
@@ -57,16 +62,19 @@ test('company security floor preserves the D1-D10 review dimensions', () => {
 });
 
 test('quality gates take precedence over reduction metrics', () => {
-  const requiredRule = 'LOC, file count, and dependency count are optimization metrics only after correctness, security, regression tests, and project-rule gates pass. Never remove required behavior or safeguards to lower these metrics.';
-  const ruleSources = [
+  const englishRule = 'LOC, file count, and dependency count are optimization metrics only after correctness, security, regression tests, and project-rule gates pass. Never remove required behavior or safeguards to lower these metrics.';
+  const chineseRule = 'LOC、文件数和依赖数只有在正确性、安全性、回归测试和项目规则门禁通过后，才是优化指标。不得为了降低指标而删除必要行为或保护措施。';
+  const englishSources = [
     'rules/company-core.md',
-    'skills/panda/SKILL.md',
-    '.openclaw/skills/panda/SKILL.md',
     'AGENTS.md',
   ];
+  const chineseSources = ['skills/panda/SKILL.md', '.openclaw/skills/panda/SKILL.md'];
 
-  for (const relPath of ruleSources) {
-    assert.ok(read(relPath).includes(requiredRule), `${relPath} is missing the quality-gate rule`);
+  for (const relPath of englishSources) {
+    assert.ok(read(relPath).includes(englishRule), `${relPath} is missing the quality-gate rule`);
+  }
+  for (const relPath of chineseSources) {
+    assert.ok(read(relPath).includes(chineseRule), `${relPath} is missing the Chinese quality-gate rule`);
   }
 });
 
@@ -77,23 +85,31 @@ test('Panda checks applicable project-rule entry points before implementation', 
     'Respect nested instruction scope.',
     'If none exist, continue with company and Panda rules; do not recursively scan arbitrary rule directories.',
   ];
-  const ruleSources = [
-    'rules/company-core.md',
-    'skills/panda/SKILL.md',
-    '.openclaw/skills/panda/SKILL.md',
-    'AGENTS.md',
+  const englishSources = ['rules/company-core.md', 'AGENTS.md'];
+  const chineseMarkers = [
+    '检查当前仓库及目标文件作用域内适用的项目规则入口',
+    '宿主已经提供的规则直接使用，不重复读取',
+    '遵守嵌套规则的作用域。',
+    '不要递归扫描任意规则目录。',
   ];
+  const chineseSources = ['skills/panda/SKILL.md', '.openclaw/skills/panda/SKILL.md'];
 
-  for (const relPath of ruleSources) {
+  for (const relPath of englishSources) {
     const rules = read(relPath);
     for (const marker of requiredMarkers) {
       assert.ok(rules.includes(marker), `${relPath} is missing project-rule discovery guidance: ${marker}`);
     }
   }
+  for (const relPath of chineseSources) {
+    const rules = read(relPath);
+    for (const marker of chineseMarkers) {
+      assert.ok(rules.includes(marker), `${relPath} is missing Chinese project-rule guidance: ${marker}`);
+    }
+  }
 });
 
 test('every active Panda mode injects project-rule discovery guidance', () => {
-  const marker = 'Before choosing an implementation or editing files, check the current repository and target-file scope';
+  const marker = '在选择实现或编辑文件前，检查当前仓库及目标文件作用域内适用的项目规则入口';
 
   for (const mode of ['lite', 'full', 'ultra']) {
     assert.ok(getPonytailInstructions(mode).includes(marker), `${mode} is missing project-rule discovery guidance`);
@@ -101,7 +117,7 @@ test('every active Panda mode injects project-rule discovery guidance', () => {
 });
 
 test('Panda is authoritative when Ponytail is also active', () => {
-  const rule = 'When Ponytail is also active, Panda is authoritative: follow Panda when guidance differs, and do not repeat Ponytail\'s minimization pass.';
+  const rule = 'Ponytail 与 Panda 同时生效时，以 Panda 为最终工程约束；两者规则不一致时遵循 Panda，并且不要重复执行 Ponytail 的最小化检查。';
   const ruleSources = [
     'skills/panda/SKILL.md',
     '.openclaw/skills/panda/SKILL.md',
@@ -114,13 +130,13 @@ test('Panda is authoritative when Ponytail is also active', () => {
 
 test('Panda constrains every change to the requested scope', () => {
   const requiredMarkers = [
-    '## Surgical changes',
-    'Every changed line must trace to the user request, a necessary affected call chain, or required verification.',
-    'Do not opportunistically refactor, reformat, clean up, or improve adjacent or unrelated code.',
-    'Remove only imports, variables, functions, or files made unused by the current change.',
-    'Inspect existing worktree changes before editing. Preserve pre-existing user changes;',
-    'Cross-module changes are allowed only when required by the real call chain or root cause',
-    'Before finishing, inspect the diff and remove changes that cannot be justified by the request, its necessary call chain, or required verification.',
+    '## 外科手术式修改',
+    '每一处改动都必须能够追溯到用户需求、必要的受影响调用链或必要验证。',
+    '不顺手重构、重新格式化、清理或优化相邻及无关代码。',
+    '只清理由本次改动直接造成的无用 import、变量、函数或文件。',
+    '编辑前检查工作区已有改动并予以保留。',
+    '只有真实调用链或根因要求时，才允许跨模块修改',
+    '结束前检查 Diff，移除无法由当前需求、必要调用链或必要验证解释的改动。',
   ];
   const skillCopies = [
     'skills/panda/SKILL.md',
@@ -136,21 +152,30 @@ test('Panda constrains every change to the requested scope', () => {
 });
 
 test('Panda presents Surgical Changes as a core capability', () => {
-  const expected = [
+  const chineseExpected = [
+    '## 核心能力',
+    '**Surgical Changes（外科手术式修改）：**每一处改动都必须服务于当前需求',
+  ];
+  const chineseSources = ['skills/panda/SKILL.md', '.openclaw/skills/panda/SKILL.md'];
+  const englishExpected = [
     '## Core capabilities',
     '**Surgical Changes:** Keep every changed line tied to the request',
   ];
-  const sources = [
-    'skills/panda/SKILL.md',
-    '.openclaw/skills/panda/SKILL.md',
+  const englishSources = [
     'skills/panda-help/SKILL.md',
     '.openclaw/skills/panda-help/SKILL.md',
     'README.md',
   ];
 
-  for (const relPath of sources) {
+  for (const relPath of chineseSources) {
     const content = read(relPath);
-    for (const marker of expected) {
+    for (const marker of chineseExpected) {
+      assert.ok(content.includes(marker), `${relPath} is missing capability summary: ${marker}`);
+    }
+  }
+  for (const relPath of englishSources) {
+    const content = read(relPath);
+    for (const marker of englishExpected) {
       assert.ok(content.includes(marker), `${relPath} is missing capability summary: ${marker}`);
     }
   }
@@ -164,7 +189,7 @@ test('Panda discovery descriptions advertise Surgical Changes', () => {
   const codexManifest = json('.codex-plugin/plugin.json');
 
   assert.match(canonicalFrontmatter, /Surgical Changes/);
-  assert.match(canonicalFrontmatter, /unrelated/);
+  assert.match(canonicalFrontmatter, /无关模块/);
   assert.match(openClawFrontmatter, /Surgical Changes/);
   assert.match(openClawFrontmatter, /unrelated/);
   assert.match(codexManifest.description, /Surgical Changes/);
@@ -226,8 +251,8 @@ test('Panda release version is independent and consistent', () => {
   for (const relPath of versionFiles) {
     assert.equal(json(relPath).version, PANDA_VERSION, relPath);
   }
-  assert.match(read('plugin.yaml'), /^version:\s*5\.0\.7\s*$/m);
-  assert.match(read('README.md'), /Panda 5\.0\.7/);
+  assert.match(read('plugin.yaml'), /^version:\s*5\.0\.8\s*$/m);
+  assert.match(read('README.md'), /Panda 5\.0\.8/);
   assert.match(read('README.md'), /Ponytail 4\.9\.0/);
 });
 

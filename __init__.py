@@ -110,6 +110,12 @@ def _company_rules() -> str:
         return "Follow current project rules and preserve company safety and quality boundaries."
 
 
+def _with_company_rules(body: str) -> str:
+    if re.search(r"^## (?:Company rules|公司规则)\s*$", body, re.MULTILINE):
+        return body
+    return f"{body}\n\n{_company_rules()}"
+
+
 def build_injected_context(mode: str | None = None) -> str:
     """Return the mode-filtered Panda context injected before LLM turns."""
     configured = _normalize_config_mode(mode) or _default_mode()
@@ -118,14 +124,14 @@ def build_injected_context(mode: str | None = None) -> str:
     if configured == "review":
         try:
             body = REVIEW_SKILL.read_text(encoding="utf-8")
-            return f"PANDA MODE ACTIVE — level: review\n\n{_strip_frontmatter(body)}\n\n{_company_rules()}"
+            return f"PANDA MODE ACTIVE — level: review\n\n{_with_company_rules(_strip_frontmatter(body))}"
         except OSError:
             return f"PANDA MODE ACTIVE — level: review. Review diffs for unnecessary complexity.\n\n{_company_rules()}"
 
     effective = _normalize_runtime_mode(configured) or DEFAULT_MODE
     try:
         body = PONYTAIL_SKILL.read_text(encoding="utf-8")
-        return f"PANDA MODE ACTIVE — level: {effective}\n\n{_filter_skill_body_for_mode(body, effective)}\n\n{_company_rules()}"
+        return f"PANDA MODE ACTIVE — level: {effective}\n\n{_with_company_rules(_filter_skill_body_for_mode(body, effective))}"
     except OSError:
         return _fallback_instructions(effective)
 

@@ -41,7 +41,7 @@ test('system.transform injects the ruleset at the default mode (full)', async ()
   const system = await transform(hooks);
   assert.equal(system.length, 1);
   assert.match(system[0], /PANDA MODE ACTIVE — level: full/);
-  assert.match(system[0], /lazy senior developer/);
+  assert.match(system[0], /追求高效而非草率的资深开发者/);
 });
 
 test('command.execute.before persists /panda ultra, transform follows it', async () => {

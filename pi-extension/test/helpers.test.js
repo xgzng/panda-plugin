@@ -145,19 +145,19 @@ test("filterSkillBodyForMode does not drop a rule bullet whose label matches a m
 });
 
 test("filterSkillBodyForMode keeps rule bullets that contain a colon", () => {
-  // Regression: rule bullets outside the Intensity section (e.g. the
-  // "No unrequested abstractions:" rule or the `ponytail:` comment convention)
+  // Regression: rule bullets outside the mode section (e.g. the
+  // "不增加未经要求的抽象：" rule or the `panda:` comment convention)
   // contain a colon and must not be mistaken for mode-example lines.
   const skillPath = new URL("../../skills/panda/SKILL.md", import.meta.url);
   const body = readFileSync(skillPath, "utf8");
 
   const filtered = filterSkillBodyForMode(body, "full");
 
-  assert.ok(filtered.includes("No unrequested abstractions"));
-  assert.ok(filtered.includes("Mark deliberate simplifications that cut a real corner"));
-  assert.ok(filtered.includes("`panda:` comment naming the ceiling and upgrade path"));
-  // The Intensity examples are still filtered down to the active mode.
-  assert.ok(filtered.includes('full: "`@lru_cache'));
-  assert.ok(!filtered.includes('lite: "Done'));
-  assert.ok(!filtered.includes('ultra: "No cache'));
+  assert.ok(filtered.includes("不增加未经要求的抽象"));
+  assert.ok(filtered.includes("只有当简化方案确实存在已知上限时"));
+  assert.ok(filtered.includes("`panda:` 注释说明上限和升级条件"));
+  // Mode examples are still filtered down to the active mode.
+  assert.ok(filtered.includes('full: "在获取函数上增加'));
+  assert.ok(!filtered.includes('lite: "已完成缓存'));
+  assert.ok(!filtered.includes('ultra: "在分析器证明需要之前'));
 });

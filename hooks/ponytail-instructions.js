@@ -23,7 +23,7 @@ function readCompanyRules() {
 
 function withCompanyRules(body) {
   const text = String(body || '').trim();
-  return text.includes('## Company rules')
+  return /## (?:Company rules|公司规则)/.test(text)
     ? text
     : text + '\n\n' + readCompanyRules();
 }

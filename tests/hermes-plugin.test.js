@@ -107,10 +107,12 @@ print(json.dumps({'ctx': ctx}))
   const { ctx } = JSON.parse(output);
 
   assert.match(ctx, /PANDA MODE ACTIVE — level: ultra/);
-  assert.match(ctx, /The best\s+code is the code never written/);
+  assert.match(ctx, /最好的代码，是根本不需要写的代码/);
   assert.match(ctx, /ultra/i);
   assert.doesNotMatch(ctx, /^---/);
   assert.doesNotMatch(ctx, /\|\s*\*\*Lite\*\*/i);
+  assert.equal((ctx.match(/## 公司规则/g) || []).length, 1);
+  assert.doesNotMatch(ctx, /# Panda company rules/);
 });
 
 test('Hermes mode config respects env, config file, off, and invalid command behavior', () => {

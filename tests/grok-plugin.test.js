@@ -18,10 +18,10 @@ test('Grok manifest is a skill-only adapter with no lifecycle hooks', () => {
   assert.ok(!fs.existsSync(path.join(root, '.grok-plugin', 'hooks.json')));
 });
 
-test('Panda skill describes every coding task for Grok auto-invocation', () => {
+test('Panda skill describes its coding triggers for Grok invocation', () => {
   const skill = fs.readFileSync(path.join(root, 'skills', 'panda', 'SKILL.md'), 'utf8');
   assert.match(skill, /description:\s*>\s*\r?\n\s*Use when/i);
-  assert.match(skill, /writing, adding, refactoring, fixing, reviewing, or designing\s+code/i);
-  assert.match(skill, /Do not use for non-coding requests/i);
+  assert.match(skill, /编码、重构、修复、评审、设计、依赖选择/);
+  assert.match(skill, /非编码请求不使用/);
   assert.doesNotMatch(skill, /disable-model-invocation:\s*true/i);
 });
