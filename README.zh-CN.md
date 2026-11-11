@@ -29,8 +29,10 @@ Panda 是一套面向 AI 编程 Agent 的规则、Skills、插件和生命周期
 
 实现上可以懒，正确性上绝不偷懒。
 
-当前版本：**Panda 5.0.8**，上游基线为 **Ponytail 4.9.0**。Panda 从该版本
-开始使用独立版本号，不再把上游版本号当作自己的发布版本。
+当前版本：**Panda 5.1.0**，适配上游稳定版 **Ponytail 5.3.3**，保持独立版本号。
+完整改动和兼容限制见 [发布说明](docs/releases/5.1.0.md)。
+
+本次更新实现规则，将 Review/Audit 从精简审查扩展为质量与安全审查，修复跨项目模式状态与上下文压缩恢复，加入 Cursor Hooks、OpenCode 2 适配，以及 Claude Code 任务用量看板。Panda 中文主 Skill、公司基线、项目规则发现和外科手术式修改均继续保留。
 
 ## 核心能力
 
@@ -130,9 +132,9 @@ Panda 保留了 Ponytail 对 GitHub Copilot CLI、Gemini CLI、OpenCode、Pi、Q
 | Skill | 用途 |
 |---|---|
 | `panda` | 开发时寻找满足项目约束的最小实现。 |
-| `panda-review` | 提交或合并前检查当前 diff 中的过度设计。 |
-| `panda-audit` | 审计整个仓库中不必要的复杂度。 |
-| `panda-debt` | 汇总代码中的 `panda:` 简化标记，形成技术债清单。 |
+| `panda-review` | 提交前检查正确性、安全、实际负载、测试、复杂度和无关改动。 |
+| `panda-audit` | 审计整个仓库的质量与复杂度，按具体风险排序。 |
+| `panda-debt` | 汇总 `shortcut:`、`panda:` 和旧 `ponytail:` 标记，形成技术债清单。 |
 | `panda-gain` | 展示 Ponytail 发布的上游基准数据，仅供参考。 |
 | `panda-help` | 显示命令、Skill 和模式速查说明。 |
 
@@ -185,7 +187,7 @@ Panda：       全程约束公司边界、项目规则、复用和实现复杂�
 | `off` | 关闭 Panda 的持续指导。 | `$panda:panda off` | `/panda off` |
 
 不带参数调用 `$panda:panda`（Codex）或 `/panda`（Claude Code）可查看
-当前模式。会话内切换只持续到会话结束。
+当前模式；关闭时重新启用默认模式。实时模式状态按项目隔离，并在上下文压缩后保留；同一项目的多个会话仍共享实时状态。永久默认值与实时模式分别保存。
 
 永久修改新会话的默认模式：
 
@@ -207,6 +209,19 @@ Claude Code：/panda default lite
 
 为兼容上游配置和后续合并，Panda 仍接受旧的 `PONYTAIL_*` 环境变量。
 
+## Claude Code 任务用量看板
+
+Claude Code **2.1.290+** 可在输入框上方展示任务成本、输入/输出/缓存 Token、Agent 耗时、启发式复用计数和最近测试状态。按钮可以切模式、执行 Review/Audit、复制 Markdown 记录，并打开本地 Board。
+
+- `/panda band`：切换看板显隐；`/panda band on|off`：指定显隐。
+- `/panda band import`：导入以往的 Claude Code 会话记录。
+
+此界面仅支持 Claude Code 终端和桌面 Code 会话，不支持 Codex、VS Code 聊天面板、云会话或 `claude -p`。其他宿主仍使用各自适配器支持的 Panda 规则与 Skills。
+
+默认只在本机 Panda 配置目录的 `band/` 中保存指标和任务名：Windows 为 `%APPDATA%/panda/band/`，macOS/Linux 为 `~/.config/panda/band/`，设置 `XDG_CONFIG_HOME` 时优先使用它。默认未配置 webhook；只有用户主动配置 HTTPS webhook 才外发指标，任务名外发默认关闭。隐藏看板不会停止本地记账，需要将插件的 `ledger` 设置为 false 才停止后续记录。
+
+历史导入可能按上游固定的 2026-10-17 费率估算成本，不能当成账单，尤其是自定义供应商。复用计数仅是部分语言的启发式统计，不能据此声称 Java/TBS 的复用率或代码质量。看板记录用量，是否节省仍需同类任务的基准对照。
+
 ## 项目规则
 
 Panda 不会扫描电脑上的所有仓库。在选择实现方案或修改文件前，它会检查当前仓库和目标文件作用域内的项目规则入口，例如 `AGENTS.md`、`CLAUDE.md`、`.github/copilot-instructions.md`、`.cursor/rules/`、`GEMINI.md` 和 `.windsurf/rules/`。宿主已经注入的规则会直接复用；否则只读取适用入口及其明确引用、与当前任务相关的规则文件，不会递归扫描任意规则目录。
@@ -226,11 +241,11 @@ Panda 不会扫描电脑上的所有仓库。在选择实现方案或修改文�
 
 上游实验在真实 Claude Code 会话中，将使用 Skill 的 Agent 与未使用 Skill 的同一 Agent 进行比较：
 
-| 相比未使用 Skill 的基线 | 新增 LOC | Token | 成本 | 时间 | 安全测试 |
+| 相比未使用 Skill 的基线 | LOC | 输出 Token | 成本 | 时间 | 隐藏检查 |
 |---|---:|---:|---:|---:|---:|
-| **Ponytail 上游结果** | **-54%** | **-22%** | **-20%** | **-27%** | **20/20 通过** |
+| **Ponytail 5 上游结果** | **-53%** | **-45%** | **-26%** | **-41%** | **97% 通过** |
 
-当任务存在明显的过度构建空间时，例如日期或颜色选择器，减少最明显；原本已经很精简的任务则变化很小。详情见仓库中保留的上游报告 [`benchmarks/results/2026-06-18-agentic.md`](benchmarks/results/2026-06-18-agentic.md) 和 [Ponytail 原项目](https://github.com/DietrichGebert/ponytail)。
+数据来自 Claude Code + Opus 5.5 的 39 项任务、每项五轮，按各任务中位数比值的几何平均统计；其中限定安全子集为 30/30 通过，不代表所有生产安全场景均已验证。原本已经精简的任务可能几乎没有收益。详情见保留的上游报告 [`benchmarks/results/2026-10-07-agentic.md`](benchmarks/results/2026-10-07-agentic.md) 和 [Ponytail 原项目](https://github.com/DietrichGebert/ponytail)。Panda 本次未重新跑收益实验。
 
 ## 更新与卸载
 
@@ -256,8 +271,12 @@ codex plugin marketplace remove panda
 
 ```bash
 node scripts/check-rule-copies.js
+node scripts/check-versions.js
 npm test
+npm run test:band
 ```
+
+`npm run test:band` 需要支持 `plugin test` 的 Claude Code，只执行模拟 UI/指标测试，不调用模型。核心测试使用 Node.js 和原有 Python/Pandas 正确性样例。适配器验证包含模拟行为与结构契约，并非已在所有客户端逐一交互验收。
 
 公开 Skill 名称均使用 Panda。部分内部 Hook 文件名、`.ponytail-active` 和 `ponytail-mcp` 目录有意保留上游兼容名称，以减少后续合并 Ponytail 更新时的冲突，并兼容已有会话。
 

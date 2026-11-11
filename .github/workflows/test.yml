@@ -34,3 +34,9 @@ jobs:
 
       - name: Run tests
         run: npm test
+
+      - name: Install Claude Code UI test harness
+        run: npm install -g @anthropic-ai/claude-code@2.1.311
+
+      - name: Test Claude Code band without model calls
+        run: npm run test:band

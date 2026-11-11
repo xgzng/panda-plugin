@@ -1,9 +1,36 @@
 {
   "name": "panda",
-  "version": "5.0.8",
+  "version": "5.1.0",
   "description": "Company AI coding guardrails based on Ponytail: reuse first and minimum compliant implementation.",
   "author": {
     "name": "Company Engineering"
   },
-  "hooks": "./hooks/claude-codex-hooks.json"
+  "hooks": ["./hooks/claude-codex-hooks.json", "./hooks/claude-band.json"],
+  "types": "./hooks/band/types.d.ts",
+  "userConfig": {
+    "ledger": {
+      "type": "boolean",
+      "title": "Panda task board",
+      "description": "Write local task metrics to the Panda configuration directory for the board.",
+      "default": true
+    },
+    "webhookUrl": {
+      "type": "string",
+      "title": "Webhook URL",
+      "description": "Optional HTTPS endpoint for task metrics. Empty: no data leaves this machine.",
+      "default": ""
+    },
+    "webhookToken": {
+      "type": "string",
+      "title": "Webhook token",
+      "sensitive": true,
+      "description": "Optional Bearer token stored by Claude Code in its keychain."
+    },
+    "sendNames": {
+      "type": "boolean",
+      "title": "Send task names",
+      "description": "Include task names when an HTTPS webhook is explicitly configured.",
+      "default": false
+    }
+  }
 }

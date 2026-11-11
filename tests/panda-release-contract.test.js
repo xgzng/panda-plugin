@@ -4,11 +4,11 @@ const test = require('node:test');
 const assert = require('node:assert/strict');
 const fs = require('node:fs');
 const path = require('node:path');
-const { getPonytailInstructions } = require('../hooks/ponytail-instructions');
+const { getPonytailInstructions, getFallbackInstructions, withCompanyRules } = require('../hooks/ponytail-instructions');
 
 const root = path.join(__dirname, '..');
 const PANDA_REPO = 'https://github.com/xgzng/panda-plugin';
-const PANDA_VERSION = '5.0.8';
+const PANDA_VERSION = '5.1.0';
 
 function read(relPath) {
   return fs.readFileSync(path.join(root, relPath), 'utf8');
@@ -180,7 +180,7 @@ test('Panda presents Surgical Changes as a core capability', () => {
     }
   }
 
-  assert.match(read('README.zh-CN.md'), /\*\*外科手术式修改：\*\*每一处改动都必须服务于当前需求/);
+  assert.match(read('README.zh-CN.md'), /\*\*外科手术式修改：\*\*\s*每一处改动都必须服务于当前需求/);
 });
 
 test('Panda discovery descriptions advertise Surgical Changes', () => {
@@ -251,9 +251,44 @@ test('Panda release version is independent and consistent', () => {
   for (const relPath of versionFiles) {
     assert.equal(json(relPath).version, PANDA_VERSION, relPath);
   }
-  assert.match(read('plugin.yaml'), /^version:\s*5\.0\.8\s*$/m);
-  assert.match(read('README.md'), /Panda 5\.0\.8/);
-  assert.match(read('README.md'), /Ponytail 4\.9\.0/);
+  assert.match(read('plugin.yaml'), /^version:\s*5\.1\.0\s*$/m);
+  assert.match(read('README.md'), /Panda 5\.1\.0/);
+  assert.match(read('README.md'), /Ponytail 5\.3\.3/);
+});
+
+test('off serves no instructions and fallbacks preserve scope and company rules once', () => {
+  assert.equal(getPonytailInstructions('off'), '');
+  for (const mode of ['lite', 'full', 'ultra']) {
+    const fallback = getFallbackInstructions(mode);
+    assert.match(fallback, /Surgical Changes/);
+    assert.match(fallback, /Before choosing an implementation or editing files/);
+    assert.match(fallback, /company safety and quality boundaries/);
+    assert.equal(withCompanyRules(fallback), fallback);
+    assert.equal((fallback.match(/# Panda company rules/g) || []).length, 1);
+  }
+});
+
+test('quality review and audit keep scope controls and cannot change the live mode', () => {
+  for (const name of ['panda-review', 'panda-audit']) {
+    const skill = read(`skills/${name}/SKILL.md`);
+    for (const check of ['**Bug:**', '**Risk:**', '**Scale:**', '**Missing test:**', '**Speed:**', '**Lean:**']) {
+      assert.ok(skill.includes(check), `${name} dropped ${check}`);
+    }
+    assert.match(skill, /concrete|reachable/);
+    assert.match(skill, /company/);
+    assert.match(skill, /mode/);
+    assert.doesNotMatch(skill, /correctness.*out of scope|no frameworks/);
+  }
+});
+
+test('band is Claude-only, local by default and leaves Codex with the shared hooks', () => {
+  const claude = json('.claude-plugin/plugin.json');
+  assert.deepEqual(claude.hooks, ['./hooks/claude-codex-hooks.json', './hooks/claude-band.json']);
+  assert.equal(claude.userConfig.webhookUrl.default, '');
+  assert.equal(claude.userConfig.sendNames.default, false);
+  assert.equal(claude.userConfig.webhookToken.sensitive, true);
+  assert.equal(json('.codex-plugin/plugin.json').hooks, './hooks/claude-codex-hooks.json');
+  assert.ok(fs.statSync(path.join(root, json('.codex-plugin/plugin.json').interface.composerIcon)).size < 20000);
 });
 
 test('portability docs never tell Panda users to install Ponytail', () => {

@@ -18,9 +18,9 @@ const HOMEPAGE = 'https://github.com/xgzng/panda-plugin';
 
 const DESCRIPTIONS = {
   'panda': 'Company coding guardrails: project rules, reuse first, minimum compliant implementation, and Surgical Changes that prevent unrelated edits.',
-  'panda-review': 'Review a diff for over-engineering. Finds what to delete: reinvented stdlib, needless deps, speculative abstractions. One line per finding.',
-  'panda-audit': 'Audit the whole repo for over-engineering. A ranked list of what to delete, simplify, or replace with stdlib or native features.',
-  'panda-debt': 'Harvest every panda: or legacy ponytail: shortcut comment into one debt ledger. One-shot report.',
+  'panda-review': 'Review a change: correctness, security, real load, tests, speed, complexity and unrelated edits. Concrete findings with the smallest fix.',
+  'panda-audit': 'Audit repository quality: bugs, security, load, tests, speed and complexity. Ranked evidence; no code changes.',
+  'panda-debt': 'Harvest shortcut:, panda: and legacy ponytail: deferral comments into one debt ledger. One-shot report.',
   'panda-gain': 'Show the upstream Ponytail benchmark as a reference scoreboard. Not a Panda or per-repository measurement.',
   'panda-help': "Quick reference for Panda modes, skills, and commands. One-shot display.",
 };

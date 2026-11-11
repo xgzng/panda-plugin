@@ -9,6 +9,7 @@ const fs = require('fs');
 const os = require('os');
 const path = require('path');
 const { spawnSync } = require('child_process');
+const { filterSkillBodyForMode } = require('../hooks/ponytail-instructions');
 
 const commands = ['panda', 'panda-review', 'panda-audit', 'panda-debt', 'panda-gain', 'panda-help'];
 const skillCommands = commands.filter((name) => name !== 'panda');
@@ -31,7 +32,14 @@ function pythonExe() {
 function python(script, env = {}) {
   const result = spawnSync(pythonExe(), ['-c', script], {
     cwd: root,
-    env: { ...process.env, ...env },
+    // Isolate from the developer's own ~/.config/panda and PONYTAIL_DEFAULT_MODE.
+    env: {
+      ...process.env,
+      PANDA_DEFAULT_MODE: '',
+      PONYTAIL_DEFAULT_MODE: '',
+      XDG_CONFIG_HOME: fs.mkdtempSync(path.join(os.tmpdir(), 'ponytail-config-')),
+      ...env,
+    },
     encoding: 'utf8',
   });
   if (result.status !== 0) {
@@ -95,7 +103,7 @@ print(json.dumps({'skills': ctx.skills, 'hooks': ctx.hooks, 'commands': ctx.comm
 });
 
 test('Hermes plugin builds mode-aware injected context from the canonical skill', () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'panda-config-'));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ponytail-config-'));
   const output = python(String.raw`
 import importlib.util, json
 spec = importlib.util.spec_from_file_location('panda_hermes_plugin', '__init__.py')
@@ -107,16 +115,49 @@ print(json.dumps({'ctx': ctx}))
   const { ctx } = JSON.parse(output);
 
   assert.match(ctx, /PANDA MODE ACTIVE — level: ultra/);
-  assert.match(ctx, /最好的代码，是根本不需要写的代码/);
+  assert.match(ctx, /最好的代码|The best\s+code is the code never written/);
   assert.match(ctx, /ultra/i);
   assert.doesNotMatch(ctx, /^---/);
   assert.doesNotMatch(ctx, /\|\s*\*\*Lite\*\*/i);
-  assert.equal((ctx.match(/## 公司规则/g) || []).length, 1);
-  assert.doesNotMatch(ctx, /# Panda company rules/);
+});
+
+test('Hermes preserves Panda company rules once and retains them if the main skill is unavailable', () => {
+  const output = python(String.raw`
+import importlib.util, json, pathlib
+spec = importlib.util.spec_from_file_location('panda_hermes_plugin', '__init__.py')
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+contexts = [mod.build_injected_context(mode) for mode in ['lite', 'full', 'ultra']]
+mod.PONYTAIL_SKILL = pathlib.Path('missing-skill-fixture/SKILL.md')
+fallback = mod.build_injected_context('full')
+print(json.dumps({'contexts': contexts, 'fallback': fallback}))
+`);
+  const data = JSON.parse(output);
+  for (const context of data.contexts) {
+    assert.equal((context.match(/^## 公司规则/gm) || []).length, 1);
+    assert.match(context, /项目规则入口/);
+    assert.match(context, /Surgical Changes/);
+    assert.doesNotMatch(context, /^# Panda company rules/gm, 'Chinese skill already contains the company rules');
+  }
+  assert.match(data.fallback, /Surgical Changes/);
+  assert.match(data.fallback, /# Panda company rules/);
+  assert.match(data.fallback, /applicable project-instruction entry points/);
+});
+
+test('Hermes prioritizes PANDA_DEFAULT_MODE and still accepts the legacy alias', () => {
+  const script = String.raw`
+import importlib.util, json
+spec = importlib.util.spec_from_file_location('panda_hermes_plugin', '__init__.py')
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+print(json.dumps(mod._default_mode()))
+`;
+  assert.equal(JSON.parse(python(script, { PANDA_DEFAULT_MODE: ' LITE ', PONYTAIL_DEFAULT_MODE: 'ultra' })), 'lite');
+  assert.equal(JSON.parse(python(script, { PANDA_DEFAULT_MODE: '', PONYTAIL_DEFAULT_MODE: 'ultra' })), 'ultra');
 });
 
 test('Hermes mode config respects env, config file, off, and invalid command behavior', () => {
-  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'panda-config-'));
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ponytail-config-'));
   fs.mkdirSync(path.join(tmp, 'panda'), { recursive: true });
   fs.writeFileSync(path.join(tmp, 'panda', 'config.json'), JSON.stringify({ defaultMode: 'lite' }));
   const output = python(String.raw`
@@ -151,20 +192,50 @@ print(json.dumps({
   assert.match(data.status_after, /Panda mode: ultra/);
 });
 
-test('Hermes plugin review mode injects the real review skill body', () => {
-  const output = python(String.raw`
+test('Hermes honors plain and BOM-prefixed default-mode config before LLM calls', (t) => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'ponytail-config-'));
+  t.after(() => fs.rmSync(tmp, { recursive: true, force: true }));
+  fs.mkdirSync(path.join(tmp, 'panda'));
+  for (const prefix of ['', '\uFEFF']) {
+    for (const mode of ['lite', 'off']) {
+      fs.writeFileSync(path.join(tmp, 'panda', 'config.json'), prefix + JSON.stringify({ defaultMode: mode }));
+      const output = python(String.raw`
 import importlib.util, json
 spec = importlib.util.spec_from_file_location('panda_hermes_plugin', '__init__.py')
 mod = importlib.util.module_from_spec(spec)
 spec.loader.exec_module(mod)
-ctx = mod.build_injected_context('review')
-print(json.dumps({'ctx': ctx}))
-`);
-  const { ctx } = JSON.parse(output);
-  assert.match(ctx, /PANDA MODE ACTIVE — level: review/);
-  assert.match(ctx, /Review diffs for unnecessary complexity/);
-  assert.match(ctx, /net: -<N> lines possible/);
-  assert.doesNotMatch(ctx, /^---/);
+print(json.dumps(mod._pre_llm_call()))
+`, { XDG_CONFIG_HOME: tmp, PONYTAIL_DEFAULT_MODE: '' });
+      const data = JSON.parse(output);
+      if (mode === 'off') assert.equal(data, null);
+      else assert.match(data.context, /PANDA MODE ACTIVE — level: lite/);
+    }
+  }
+});
+
+test('Hermes treats review as a command, never a level', () => {
+  const tmp = fs.mkdtempSync(path.join(os.tmpdir(), 'panda-review-default-'));
+  fs.mkdirSync(path.join(tmp, 'panda'), { recursive: true });
+  fs.writeFileSync(path.join(tmp, 'panda', 'config.json'), JSON.stringify({ defaultMode: 'review' }));
+  const output = python(String.raw`
+import importlib.util, json, os
+spec = importlib.util.spec_from_file_location('panda_hermes_plugin', '__init__.py')
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+env_default = mod.build_injected_context(None)
+del os.environ['PONYTAIL_DEFAULT_MODE']
+file_default = mod.build_injected_context(None)
+explicit_review = mod.build_injected_context('review')
+print(json.dumps({
+    'env_default': env_default,
+    'file_default': file_default,
+    'explicit_review': explicit_review,
+}))
+`, { XDG_CONFIG_HOME: tmp, PONYTAIL_DEFAULT_MODE: 'review' });
+  const data = JSON.parse(output);
+  assert.match(data.env_default, /PANDA MODE ACTIVE — level: full/);
+  assert.match(data.file_default, /PANDA MODE ACTIVE — level: full/);
+  assert.match(data.explicit_review, /PANDA MODE ACTIVE — level: full/);
 });
 
 test('Hermes /panda command changes mode and pre_llm_call injects current context', () => {
@@ -192,6 +263,70 @@ print(json.dumps({'message': message, 'context': injected['context']}))
   assert.match(data.context, /PANDA MODE ACTIVE — level: ultra/);
 });
 
+test('Hermes pre_llm_call does not append the same ruleset to every persisted turn', () => {
+  const output = python(String.raw`
+import importlib.util, json
+spec = importlib.util.spec_from_file_location('panda_hermes_plugin', '__init__.py')
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+first = mod._pre_llm_call(conversation_history=[])
+history = [{
+    'role': 'user',
+    'content': 'first task',
+    'api_content': 'first task\\n\\n' + first['context'],
+}]
+second = mod._pre_llm_call(conversation_history=history)
+mod._current_mode = 'ultra'
+switched = mod._pre_llm_call(conversation_history=history)
+history.append({
+    'role': 'user',
+    'content': 'second task',
+    'api_content': 'second task\\n\\n' + switched['context'],
+})
+after_switch = mod._pre_llm_call(conversation_history=history)
+print(json.dumps({'first': first, 'second': second, 'switched': switched, 'after_switch': after_switch}))
+`);
+  const data = JSON.parse(output);
+  assert.match(data.first.context, /PANDA MODE ACTIVE — level: full/);
+  assert.equal(data.second, null);
+  assert.match(data.switched.context, /PANDA MODE ACTIVE — level: ultra/);
+  assert.equal(data.after_switch, null);
+});
+
+test('Hermes /panda off reaches the model once, and a later level re-injects the ruleset', () => {
+  // The ruleset from the first turn is replayed from api_content on every later
+  // turn, and the command's reply goes to the user only, so off must be injected.
+  const output = python(String.raw`
+import importlib.util, json
+spec = importlib.util.spec_from_file_location('panda_hermes_plugin', '__init__.py')
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+first = mod._pre_llm_call(conversation_history=[])
+history = [{
+    'role': 'user',
+    'content': 'first task',
+    'api_content': 'first task\\n\\n' + first['context'],
+}]
+mod._handle_mode_command('off')
+nothing_persisted = mod._pre_llm_call(conversation_history=[])
+off = mod._pre_llm_call(conversation_history=history)
+history.append({
+    'role': 'user',
+    'content': 'second task',
+    'api_content': 'second task\\n\\nPANDA MODE OFF',
+})
+still_off = mod._pre_llm_call(conversation_history=history)
+mod._handle_mode_command('full')
+back_on = mod._pre_llm_call(conversation_history=history)
+print(json.dumps({'nothing_persisted': nothing_persisted, 'off': off, 'still_off': still_off, 'back_on': back_on}))
+`);
+  const data = JSON.parse(output);
+  assert.equal(data.nothing_persisted, null);
+  assert.deepEqual(data.off, { context: 'PANDA MODE OFF' });
+  assert.equal(data.still_off, null);
+  assert.match(data.back_on.context, /PANDA MODE ACTIVE — level: full/);
+});
+
 test('Hermes gateway rewrite respects slash access denial', () => {
   const output = python(String.raw`
 import importlib.util, json
@@ -212,6 +347,26 @@ result = mod.rewrite_gateway_command(event=Event(), gateway=Gateway())
 print(json.dumps(result))
 `);
   assert.equal(output, 'null');
+});
+
+test('Hermes bare /panda switches an off session on and only reports a running level (#639)', () => {
+  const output = python(String.raw`
+import importlib.util, json
+spec = importlib.util.spec_from_file_location('panda_hermes_plugin', '__init__.py')
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+mod._current_mode = 'ultra'
+running = mod._handle_mode_command('')
+kept = mod._current_mode
+mod._current_mode = 'off'
+switched = mod._handle_mode_command('')
+print(json.dumps([running, kept, switched, mod._current_mode]))
+`);
+  const [running, kept, switched, after] = JSON.parse(output);
+  assert.match(running, /Panda mode: ultra/);
+  assert.equal(kept, 'ultra');
+  assert.match(switched, /set to full/);
+  assert.equal(after, 'full');
 });
 
 test('Hermes gateway rewrite preserves every skill command and ignores unrelated text', () => {
@@ -235,4 +390,50 @@ print(json.dumps(cases, sort_keys=True))
   assert.match(data['/panda-help'].text, /panda-help/);
   assert.equal(data['/status'], null);
   assert.equal(data.hello, null);
+});
+
+test('Hermes mode filter does not drop a rule bullet whose label matches a mode name', () => {
+  // Regression for the Hermes side of #571: a rule bullet shaped "- Full: ..."
+  // has the same "label: text" shape as a worked example, but isn't one — it
+  // must survive in every mode. Only the quoted `- lite: "..."`-style bullets
+  // are real per-mode examples. hooks/ponytail-instructions.js already guards
+  // against this; the Hermes plugin filter had drifted and lost the same guard.
+  const output = python(String.raw`
+import importlib.util, json
+spec = importlib.util.spec_from_file_location('panda_hermes_plugin', '__init__.py')
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+body = (
+    "- Full: do not confuse this rule label with the mode name.\n"
+    "- Lite: same risk, this is a real rule bullet.\n"
+    '- lite: "real worked example"\n'
+    '- ultra: "real worked example"'
+)
+print(json.dumps({'filtered': mod._filter_skill_body_for_mode(body, 'ultra')}))
+`);
+  const { filtered } = JSON.parse(output);
+  assert.ok(filtered.includes('Full: do not confuse'), 'an unquoted rule bullet must not be treated as a mode example');
+  assert.ok(filtered.includes('Lite: same risk'), 'an unquoted rule bullet must not be treated as a mode example');
+  assert.ok(!filtered.includes('- lite:'), 'the real quoted lite example must still be filtered out in ultra mode');
+  assert.ok(filtered.includes('ultra: "real worked example"'));
+});
+
+test('Hermes mode filter stays in lockstep with the JS filter on the real skill body', () => {
+  // The two filters are independent ports of the same contract (one shared
+  // skill file, every host adapter trims it the same way). Diff them directly
+  // on skills/panda/SKILL.md instead of trusting the two implementations to
+  // stay in sync by hand.
+  const body = fs.readFileSync(path.join(root, 'skills', 'panda', 'SKILL.md'), 'utf8');
+  for (const mode of ['lite', 'full', 'ultra']) {
+    const jsFiltered = filterSkillBodyForMode(body, mode);
+    const pyFiltered = python(String.raw`
+import importlib.util, json
+spec = importlib.util.spec_from_file_location('panda_hermes_plugin', '__init__.py')
+mod = importlib.util.module_from_spec(spec)
+spec.loader.exec_module(mod)
+body = open('skills/panda/SKILL.md', encoding='utf-8').read()
+print(json.dumps(mod._filter_skill_body_for_mode(body, '${mode}')))
+`);
+    assert.equal(JSON.parse(pyFiltered), jsFiltered, `filters diverge for mode "${mode}"`);
+  }
 });

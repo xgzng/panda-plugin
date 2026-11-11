@@ -1,15 +1,12 @@
 {
   "name": "panda",
   "description": "Company AI coding guardrails based on Ponytail.",
-  "owner": {
-    "name": "Dietrich Gebert",
-    "url": "https://github.com/DietrichGebert"
-  },
+  "owner": { "name": "Company Engineering" },
   "plugins": [
     {
       "name": "panda",
-      "description": "Uses project rules, reuses existing capabilities, and chooses the minimum compliant implementation.",
-      "source": "./",
+      "description": "Reuse first, minimum compliant implementation and Surgical Changes.",
+      "source": "./skills",
       "category": "productivity"
     }
   ]

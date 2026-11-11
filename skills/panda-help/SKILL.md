@@ -32,15 +32,24 @@ Level sticks until changed or session end.
 | Skill | Trigger | What it does |
 |-------|---------|--------------|
 | **panda** | `/panda` | Minimum compliant implementation plus Surgical Changes scope control. |
-| **panda-review** | `/panda-review` | Over-engineering review: `L42: yagni: factory, one product. Inline.` |
-| **panda-audit** | `/panda-audit` | Whole-repo over-engineering audit: ranked list of what to delete. |
-| **panda-debt** | `/panda-debt` | Harvest `panda:` shortcut comments into a tracked ledger. |
-| **panda-gain** | `/panda-gain` | Measured-impact scoreboard: less code, less cost, more speed. |
+| **panda-review** | `/panda-review` | Quality review: bugs, security, realistic load, tests, complexity and unrelated edits. |
+| **panda-audit** | `/panda-audit` | Repository quality audit, ranked by concrete risk and reuse opportunities. |
+| **panda-debt** | `/panda-debt` | Harvest `shortcut:`, `panda:` and legacy `ponytail:` deferrals into a ledger. |
+| **panda-gain** | `/panda-gain` | Ponytail 5 upstream benchmark reference; not measured Panda savings. |
 | **panda-help** | `/panda-help` | This card. |
 
-Codex uses `@panda`, `@panda-review`, and `@panda-help`; Claude Code
-and OpenCode use the slash-command forms above (OpenCode ships all six as
-slash commands).
+Codex uses `$panda:panda`, `$panda:panda-review`, and `$panda:panda-help`.
+Claude Code and OpenCode use the slash-command forms above. One-shot skills
+do not replace the current lite/full/ultra/off setting.
+
+## Claude Code band
+
+Claude Code 2.1.290+ terminal/desktop Code sessions can show local cost, tokens,
+agent time, heuristic reuse and test status. `/panda band` toggles visibility;
+`/panda band on|off` sets it; `/panda band import` imports past sessions.
+This UI is not available in Codex, VS Code chat, cloud sessions or `claude -p`.
+Task rows stay in the Panda config directory's `band/` by default, with no
+webhook. History cost can be estimated; reuse does not currently count Java.
 
 ## Deactivate
 
@@ -49,7 +58,12 @@ Say "stop panda" or "normal mode". Resume anytime with `/panda`.
 
 ## Configure Default Mode
 
-Default mode = `full`, auto-active every session. Change it:
+With trusted lifecycle hooks, new sessions start at `full` unless configured
+otherwise. Instruction-only hosts need their native rule-loading mechanism.
+To persist a default: `/panda default lite` in Claude Code, or
+`$panda:panda default lite` in Codex. A plain `/panda full` changes live state
+only. Live state is project-scoped where the host provides a project directory;
+concurrent sessions in the same project still share it. Change it:
 
 **Environment variable** (highest priority):
 ```bash

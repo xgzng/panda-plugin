@@ -9,6 +9,16 @@ const path = require('path');
 
 const root = path.join(__dirname, '..');
 
+test('Grok marketplace discovers the bundled Panda skills without lifecycle hooks', () => {
+  const manifest = JSON.parse(fs.readFileSync(path.join(root, '.grok-plugin/marketplace.json'), 'utf8'));
+  assert.equal(manifest.name, 'panda');
+  assert.equal(manifest.plugins.length, 1);
+  assert.equal(manifest.plugins[0].name, 'panda');
+  assert.equal(manifest.plugins[0].source, './skills');
+  assert.equal(manifest.plugins[0].hooks, undefined);
+  assert.ok(fs.existsSync(path.join(root, manifest.plugins[0].source, 'panda/SKILL.md')));
+});
+
 test('Grok manifest is a skill-only adapter with no lifecycle hooks', () => {
   const manifest = JSON.parse(fs.readFileSync(path.join(root, 'plugin.json'), 'utf8'));
   assert.equal(manifest.name, 'panda');

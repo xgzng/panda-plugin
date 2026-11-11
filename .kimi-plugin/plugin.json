@@ -1,0 +1,13 @@
+{
+  "name": "panda",
+  "description": "Company-aware minimum compliant implementation and Surgical Changes, based on Ponytail.",
+  "author": { "name": "Company Engineering, based on Dietrich Gebert's Ponytail" },
+  "homepage": "https://github.com/xgzng/panda-plugin",
+  "license": "MIT",
+  "interface": {
+    "displayName": "Panda",
+    "shortDescription": "Company and project rules, reuse first, focused changes."
+  },
+  "skills": "./skills/",
+  "systemPromptPath": "./AGENTS.md"
+}

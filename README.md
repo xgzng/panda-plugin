@@ -33,8 +33,15 @@ needs.
 
 Lazy about implementation. Never lazy about correctness.
 
-Current release: **Panda 5.0.8**, based on the **Ponytail 4.9.0** upstream
-baseline. Panda versions track this derivative project independently.
+Current release: **Panda 5.1.0**, adapted from the stable **Ponytail 5.3.3**
+release. Panda versions track this derivative independently. See the
+[release notes](docs/releases/5.1.0.md) for changes and compatibility limits.
+
+This release updates implementation rules, expands review/audit to quality and
+security, fixes mode persistence across projects and compaction, adds Cursor
+hooks and OpenCode 2 support, and adapts the Claude Code task band/board. Panda's
+Chinese main Skill, company baseline, project-rule discovery and Surgical Changes
+remain in place.
 
 ## Core capabilities
 
@@ -158,9 +165,9 @@ command mapping.
 | Skill | Purpose |
 |---|---|
 | `panda` | Use during development to find the smallest compliant implementation. |
-| `panda-review` | Review the current diff for over-engineering before commit or merge. |
-| `panda-audit` | Audit the whole repository for unnecessary complexity. |
-| `panda-debt` | Collect deliberate `panda:` simplification markers into a debt ledger. |
+| `panda-review` | Review a change for bugs, security, real load, tests, complexity and unrelated edits. |
+| `panda-audit` | Audit repository quality and complexity, ranked by concrete risk. |
+| `panda-debt` | Harvest `shortcut:`, `panda:` and legacy `ponytail:` deferrals into a debt ledger. |
 | `panda-gain` | Show Ponytail's published upstream benchmark as reference data. |
 | `panda-help` | Display the command and mode reference. |
 
@@ -218,7 +225,10 @@ development stages.
 | `off` | Disable persistent Panda guidance. | `$panda:panda off` | `/panda off` |
 
 Call `$panda:panda` in Codex or `/panda` in Claude Code without an argument to
-show the current mode. Session switches last until the session ends.
+show the current mode when active, or enable the default mode when off.
+Live mode state is isolated per project and survives context compaction;
+concurrent sessions in the same project still share it. Permanent defaults are
+separate from this live state.
 
 To change the default for new sessions permanently:
 
@@ -240,6 +250,30 @@ Configuration paths:
 
 Legacy `PONYTAIL_*` environment variables remain accepted for compatibility
 with upstream configuration and future merges.
+
+## Claude Code task band and board
+
+Claude Code **2.1.290+** can display task cost, input/output/cache token counts,
+agent time, a heuristic reuse count and last test status above the prompt.
+Buttons switch level, run review/audit, copy Markdown and open the local board.
+`/panda band` toggles it; `/panda band on|off` sets visibility;
+`/panda band import` imports past Claude Code sessions.
+
+This UI supports Claude Code terminal and desktop Code sessions, not Codex,
+VS Code chat, cloud sessions or `claude -p`. Other hosts still receive the
+Panda rules and Skills supported by their adapters.
+
+Metrics and task names stay locally under the Panda config directory's `band/`
+folder (`%APPDATA%/panda/band/` on Windows, `~/.config/panda/band/` on macOS/Linux;
+`XDG_CONFIG_HOME` takes precedence). No webhook is configured. Sending metrics
+requires an explicit HTTPS webhook; task-name sharing defaults to off. Hiding
+the band does not disable its ledger; set the plugin's `ledger` option to false
+to stop future row writes.
+
+Historical imports may estimate cost using upstream's frozen 2026-10-17 rates;
+they are not a verified bill, especially for custom providers. Reuse is a
+heuristic for supported languages, not proof of quality or a Java/TBS reuse rate.
+Usage observations alone cannot prove savings without comparable baseline tasks.
 
 ## Project rules
 
@@ -268,14 +302,17 @@ Precedence:
 The upstream agentic benchmark used real Claude Code sessions against the same
 agent without the skill:
 
-| Compared with no-skill baseline | Added LOC | Tokens | Cost | Time | Safety tier |
+| Compared with no-skill baseline | LOC | Output tokens | Cost | Time | Hidden checks |
 |---|---:|---:|---:|---:|---:|
-| **Ponytail upstream result** | **-54%** | **-22%** | **-20%** | **-27%** | **20/20 passed** |
+| **Ponytail 5 upstream result** | **-53%** | **-45%** | **-26%** | **-41%** | **97% passed** |
 
 The largest reductions appeared where agents had obvious over-building traps,
 such as date pickers and color pickers. Tasks that were already minimal showed
-little or no reduction. See the bundled upstream write-up at
-[`benchmarks/results/2026-06-18-agentic.md`](benchmarks/results/2026-06-18-agentic.md)
+little or no reduction. These are geometric means of per-task median ratios,
+from 39 tasks with five runs each (Opus 5.5 in Claude Code). The limited security
+subset passed 30/30 runs; this is not universal production-safety evidence.
+See the bundled upstream write-up at
+[`benchmarks/results/2026-10-07-agentic.md`](benchmarks/results/2026-10-07-agentic.md)
 and the original [Ponytail repository](https://github.com/DietrichGebert/ponytail).
 
 ## Update and uninstall
@@ -303,8 +340,15 @@ mode/configuration state removed.
 
 ```bash
 node scripts/check-rule-copies.js
+node scripts/check-versions.js
 npm test
+npm run test:band
 ```
+
+`npm run test:band` needs Claude Code with `plugin test` support and runs mocked
+UI/metrics tests without model calls. Core tests use Node.js and existing
+Python/Pandas correctness fixtures. Adapter tests simulate behavior and contracts;
+all listed clients have not been tested interactively.
 
 Public skill names use Panda. Some internal Hook filenames, `.ponytail-active`,
 and the `ponytail-mcp` directory intentionally retain upstream-compatible

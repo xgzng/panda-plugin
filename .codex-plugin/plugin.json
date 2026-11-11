@@ -1,6 +1,6 @@
 {
   "name": "panda",
-  "version": "5.0.8",
+  "version": "5.1.0",
   "description": "Company AI coding guardrails based on Ponytail: reuse first, minimum compliant implementation, and Surgical Changes that avoid unrelated edits.",
   "author": {
     "name": "Company Engineering"
@@ -10,6 +10,7 @@
   "license": "MIT",
   "keywords": ["yagni", "minimalism", "code-review", "productivity"],
   "skills": "./skills/",
+  "hooks": "./hooks/claude-codex-hooks.json",
   "interface": {
     "displayName": "Panda",
     "shortDescription": "Minimum compliant, surgical changes",
@@ -24,7 +25,7 @@
       "Find the smallest correct and compliant implementation."
     ],
     "brandColor": "#111111",
-    "composerIcon": "./assets/logo.png",
+    "composerIcon": "./assets/logo-small.png",
     "logo": "./assets/logo.png"
   }
 }

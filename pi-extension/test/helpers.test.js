@@ -15,6 +15,9 @@ import {
 
 test("parsePonytailCommand falls back to full when invoked bare and default is off", () => {
   assert.deepEqual(parsePonytailCommand("", "off"), { type: "set-mode", mode: "full" });
+  // #639: when panda is already on, a bare command reports instead of resetting the level.
+  assert.deepEqual(parsePonytailCommand("", "full", "ultra"), { type: "status" });
+  assert.deepEqual(parsePonytailCommand("", "full", "off"), { type: "set-mode", mode: "full" });
 });
 
 test("parsePonytailCommand parses modes, status, and default subcommand", () => {
@@ -27,9 +30,9 @@ test("parsePonytailCommand rejects review as a default (session-only mode, #377)
   assert.deepEqual(parsePonytailCommand("default review", "full"), { type: "invalid", reason: "invalid-default-mode" });
 });
 
-test("resolveSessionMode still honors review as a session mode (not a default)", () => {
+test("resolveSessionMode ignores a legacy review entry because review is one-shot", () => {
   const entries = [{ type: "custom", customType: "ponytail-mode", data: { mode: "review" } }];
-  assert.equal(resolveSessionMode(entries, "full"), "review");
+  assert.equal(resolveSessionMode(entries, "full"), "full");
 });
 
 test("resolveSessionMode prefers latest persisted session mode", () => {
@@ -48,14 +51,12 @@ test("resolveSessionMode returns fallback when entries is not an array", () => {
   assert.equal(resolveSessionMode("not an array"), "full"); // DEFAULT_MODE fallback
 });
 
-test("readDefaultMode and writeDefaultMode use Panda XDG config path", () => {
-  const tempDir = mkdtempSync(join(tmpdir(), "panda-config-"));
+test("readDefaultMode and writeDefaultMode use XDG config path", () => {
+  const tempDir = mkdtempSync(join(tmpdir(), "ponytail-config-"));
   const previousXdg = process.env.XDG_CONFIG_HOME;
-  const previousPandaDefault = process.env.PANDA_DEFAULT_MODE;
   const previousDefault = process.env.PONYTAIL_DEFAULT_MODE;
   const configPath = join(tempDir, "panda", "config.json");
   process.env.XDG_CONFIG_HOME = tempDir;
-  delete process.env.PANDA_DEFAULT_MODE;
   delete process.env.PONYTAIL_DEFAULT_MODE;
 
   try {
@@ -67,23 +68,62 @@ test("readDefaultMode and writeDefaultMode use Panda XDG config path", () => {
   } finally {
     if (previousXdg === undefined) delete process.env.XDG_CONFIG_HOME;
     else process.env.XDG_CONFIG_HOME = previousXdg;
-    if (previousPandaDefault === undefined) delete process.env.PANDA_DEFAULT_MODE;
-    else process.env.PANDA_DEFAULT_MODE = previousPandaDefault;
     if (previousDefault === undefined) delete process.env.PONYTAIL_DEFAULT_MODE;
     else process.env.PONYTAIL_DEFAULT_MODE = previousDefault;
     rmSync(tempDir, { recursive: true, force: true });
   }
 });
 
-test("readQuietStartup resolves Panda env, config file, and legacy env in that order", () => {
+test("readDefaultMode trims and normalizes whitespace in env and config values", () => {
+  const tempDir = mkdtempSync(join(tmpdir(), "panda-default-normalize-"));
+  const previousXdg = process.env.XDG_CONFIG_HOME;
+  const previousDefault = process.env.PONYTAIL_DEFAULT_MODE;
+  const configDir = join(tempDir, "panda");
+  const configPath = join(configDir, "config.json");
+  mkdirSync(configDir, { recursive: true });
+  process.env.XDG_CONFIG_HOME = tempDir;
+  process.env.PONYTAIL_DEFAULT_MODE = "  FULL  ";
+  writeFileSync(configPath, JSON.stringify({ defaultMode: "\tultra\n" }), "utf8");
+
+  try {
+    assert.equal(readDefaultMode(), "full");
+    process.env.PONYTAIL_DEFAULT_MODE = "\n lite \r\n";
+    assert.equal(readDefaultMode(), "lite");
+    delete process.env.PONYTAIL_DEFAULT_MODE;
+    assert.equal(readDefaultMode(), "ultra");
+  } finally {
+    if (previousXdg === undefined) delete process.env.XDG_CONFIG_HOME;
+    else process.env.XDG_CONFIG_HOME = previousXdg;
+    if (previousDefault === undefined) delete process.env.PONYTAIL_DEFAULT_MODE;
+    else process.env.PONYTAIL_DEFAULT_MODE = previousDefault;
+    rmSync(tempDir, { recursive: true, force: true });
+  }
+});
+
+test("readDefaultMode prioritizes the Panda environment variable over the legacy alias", () => {
+  const pandaMode = process.env.PANDA_DEFAULT_MODE;
+  const legacyMode = process.env.PONYTAIL_DEFAULT_MODE;
+  try {
+    process.env.PANDA_DEFAULT_MODE = " LITE ";
+    process.env.PONYTAIL_DEFAULT_MODE = "ultra";
+    assert.equal(readDefaultMode(), "lite");
+    delete process.env.PANDA_DEFAULT_MODE;
+    assert.equal(readDefaultMode(), "ultra");
+  } finally {
+    if (pandaMode === undefined) delete process.env.PANDA_DEFAULT_MODE;
+    else process.env.PANDA_DEFAULT_MODE = pandaMode;
+    if (legacyMode === undefined) delete process.env.PONYTAIL_DEFAULT_MODE;
+    else process.env.PONYTAIL_DEFAULT_MODE = legacyMode;
+  }
+});
+
+test("readQuietStartup resolves env var, config file, and default in that order", () => {
   const tempDir = mkdtempSync(join(tmpdir(), "panda-quiet-"));
   const previousXdg = process.env.XDG_CONFIG_HOME;
-  const previousPandaEnv = process.env.PANDA_QUIET_STARTUP;
   const previousEnv = process.env.PONYTAIL_QUIET_STARTUP;
   const configDir = join(tempDir, "panda");
   const configPath = join(configDir, "config.json");
   process.env.XDG_CONFIG_HOME = tempDir;
-  delete process.env.PANDA_QUIET_STARTUP;
   delete process.env.PONYTAIL_QUIET_STARTUP;
 
   try {
@@ -96,19 +136,13 @@ test("readQuietStartup resolves Panda env, config file, and legacy env in that o
     assert.equal(readQuietStartup(), true);
 
     // Env var overrides config
-    process.env.PANDA_QUIET_STARTUP = "false";
-    assert.equal(readQuietStartup(), false);
-    process.env.PANDA_QUIET_STARTUP = "1";
-    assert.equal(readQuietStartup(), true);
-
-    delete process.env.PANDA_QUIET_STARTUP;
     process.env.PONYTAIL_QUIET_STARTUP = "false";
     assert.equal(readQuietStartup(), false);
+    process.env.PONYTAIL_QUIET_STARTUP = "1";
+    assert.equal(readQuietStartup(), true);
   } finally {
     if (previousXdg === undefined) delete process.env.XDG_CONFIG_HOME;
     else process.env.XDG_CONFIG_HOME = previousXdg;
-    if (previousPandaEnv === undefined) delete process.env.PANDA_QUIET_STARTUP;
-    else process.env.PANDA_QUIET_STARTUP = previousPandaEnv;
     if (previousEnv === undefined) delete process.env.PONYTAIL_QUIET_STARTUP;
     else process.env.PONYTAIL_QUIET_STARTUP = previousEnv;
     rmSync(tempDir, { recursive: true, force: true });
@@ -118,7 +152,7 @@ test("readQuietStartup resolves Panda env, config file, and legacy env in that o
 test("filterSkillBodyForMode keeps only requested intensity examples and rows", () => {
   // Examples are quoted in the real SKILL.md (`- lite: "..."`) — match that
   // shape here too; see the next test for why the quote is load-bearing.
-  const body = `---\nname: ponytail\n---\n| **lite** | keep lite |\n| **full** | keep full |\n| **ultra** | keep ultra |\n- lite: "Lite example"\n- full: "Full example"\n- ultra: "Ultra example"\nOther line`;
+  const body = `---\nname: panda\n---\n| **lite** | keep lite |\n| **full** | keep full |\n| **ultra** | keep ultra |\n- lite: "Lite example"\n- full: "Full example"\n- ultra: "Ultra example"\nOther line`;
 
   const filtered = filterSkillBodyForMode(body, "ultra");
 
@@ -145,19 +179,18 @@ test("filterSkillBodyForMode does not drop a rule bullet whose label matches a m
 });
 
 test("filterSkillBodyForMode keeps rule bullets that contain a colon", () => {
-  // Regression: rule bullets outside the mode section (e.g. the
-  // "不增加未经要求的抽象：" rule or the `panda:` comment convention)
+  // Regression: rule bullets outside the Intensity section (e.g. the
+  // "No unrequested abstractions:" rule or the `shortcut:` comment convention)
   // contain a colon and must not be mistaken for mode-example lines.
   const skillPath = new URL("../../skills/panda/SKILL.md", import.meta.url);
   const body = readFileSync(skillPath, "utf8");
 
   const filtered = filterSkillBodyForMode(body, "full");
 
-  assert.ok(filtered.includes("不增加未经要求的抽象"));
-  assert.ok(filtered.includes("只有当简化方案确实存在已知上限时"));
-  assert.ok(filtered.includes("`panda:` 注释说明上限和升级条件"));
-  // Mode examples are still filtered down to the active mode.
-  assert.ok(filtered.includes('full: "在获取函数上增加'));
-  assert.ok(!filtered.includes('lite: "已完成缓存'));
-  assert.ok(!filtered.includes('ultra: "在分析器证明需要之前'));
+  assert.ok(filtered.includes("修改函数前先搜索它的所有调用方"));
+  assert.ok(filtered.includes("信任边界的输入校验"));
+  assert.ok(filtered.includes("`shortcut: <上限>, <升级条件>`"));
+  // The level rows are still filtered down to the active mode.
+  assert.ok(filtered.includes("| **full** |"));
+  assert.ok(!filtered.includes("| **lite** |"));
 });

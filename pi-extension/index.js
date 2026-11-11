@@ -8,7 +8,6 @@ const {
   getQuietStartup,
   getHideStatus,
   normalizeMode,
-  normalizePersistedMode,
   isDeactivationCommand,
   writeDefaultMode,
 } = require("../hooks/ponytail-config.js");
@@ -19,28 +18,38 @@ export const readDefaultMode = getDefaultMode;
 export const readQuietStartup = getQuietStartup;
 
 const RUNTIME_MODE_LIST = RUNTIME_MODES.join("|");
-const PONYTAIL_COMMAND_DESCRIPTION = `Set Panda mode: ${RUNTIME_MODE_LIST}. Commands: status, default <mode>`;
+const PANDA_COMMAND_DESCRIPTION = `Set mode: ${RUNTIME_MODE_LIST}. Commands: status, default <mode>`;
+
+// Every item is a complete command: pi submits on Enter, so a bare "default" would run without a mode.
+// Values only: per-level descriptions would be a second copy of the Levels table in SKILL.md.
+export function completePonytailArgs(prefix) {
+  const typed = String(prefix || "").trimStart();
+  const values = [...RUNTIME_MODES, "status", ...RUNTIME_MODES.map((m) => `default ${m}`)].filter((v) => v.startsWith(typed));
+  return values.length ? values.map((value) => ({ value, label: value })) : null;
+}
 
 export function resolveSessionMode(entries, fallbackMode = DEFAULT_MODE) {
-  const fallback = normalizePersistedMode(fallbackMode) || DEFAULT_MODE;
+  const fallback = normalizeMode(fallbackMode) || DEFAULT_MODE;
   if (!Array.isArray(entries)) return fallback;
 
   for (let i = entries.length - 1; i >= 0; i -= 1) {
     const entry = entries[i];
     if (entry?.type !== "custom" || entry?.customType !== "ponytail-mode") continue;
 
-    const mode = normalizePersistedMode(entry?.data?.mode);
+    const mode = normalizeMode(entry?.data?.mode);
     if (mode) return mode;
   }
 
   return fallback;
 }
 
-export function parsePonytailCommand(text, defaultMode = DEFAULT_MODE) {
-  const fallback = normalizePersistedMode(defaultMode) || DEFAULT_MODE;
+export function parsePonytailCommand(text, defaultMode = DEFAULT_MODE, currentMode = null) {
+  const fallback = normalizeMode(defaultMode) || DEFAULT_MODE;
   const normalizedText = String(text || "").trim().toLowerCase();
 
   if (!normalizedText) {
+    // Bare /panda switches panda on, or reports the level when it already is (#639).
+    if (currentMode && currentMode !== "off") return { type: "status" };
     return { type: "set-mode", mode: fallback === "off" ? "full" : fallback };
   }
 
@@ -49,7 +58,7 @@ export function parsePonytailCommand(text, defaultMode = DEFAULT_MODE) {
   if (primary === "status") return { type: "status" };
 
   if (primary === "default") {
-    // ponytail: a default must be a runtime level; review is session-only (#377).
+    // Review is a one-shot skill, never a runtime level or saved default.
     const mode = normalizeMode(secondary);
     return mode ? { type: "set-default", mode } : { type: "invalid", reason: "invalid-default-mode" };
   }
@@ -60,7 +69,7 @@ export function parsePonytailCommand(text, defaultMode = DEFAULT_MODE) {
 
 export { writeDefaultMode };
 
-export default function ponytailExtension(pi) {
+export default function pandaExtension(pi) {
   let currentMode = DEFAULT_MODE;
   let configuredDefaultMode = getDefaultMode();
   let hideStatus = getHideStatus();
@@ -71,25 +80,25 @@ export default function ponytailExtension(pi) {
   function syncStatus(ctx) {
     if (ctx) lastCtx = ctx;
     const c = ctx || lastCtx;
-    // ponytail: hide the indicator but keep the ruleset active (#324).
+    // panda: hide the indicator but keep the ruleset active (#324).
     if (hideStatus) return;
     if (!c?.ui?.setStatus) return;
-    // ponytail: try/catch guards against pi-web theme proxy throwing before initTheme
+    // panda: try/catch guards against pi-web theme proxy throwing before initTheme
     let theme;
     try { theme = c.ui.theme; if (!theme?.fg) return; } catch { return; }
     if (currentMode === "off") {
-      c.ui.setStatus("panda", "");
+      c.ui.setStatus("panda", undefined);
       return;
     }
     const levelIcons = { lite: "🌿", full: "⚡", ultra: "🔥" };
     const icon = levelIcons[currentMode] || "";
     const label = currentMode.toUpperCase();
     const indicator = isActive ? theme.fg("accent", "●") : theme.fg("dim", "○");
-    c.ui.setStatus("panda", indicator + " " + theme.fg("muted", "panda: ") + theme.fg("text", icon + " " + label));
+    c.ui.setStatus("panda", indicator + " 🐼 " + theme.fg("muted", "panda: ") + theme.fg("text", icon + " " + label));
   }
 
   const setMode = (mode, ctx) => {
-    const normalized = normalizePersistedMode(mode);
+    const normalized = normalizeMode(mode);
     if (!normalized) return;
 
     currentMode = normalized;
@@ -102,19 +111,23 @@ export default function ponytailExtension(pi) {
     const normalized = String(args || "").trim();
     const message = normalized ? `${skillName} ${normalized}` : skillName;
 
+    // pi.sendUserMessage does not expand skill commands on its own, so without
+    // expandPromptTemplates the alias lands as the literal text
+    // "/skill:panda-review" and the skill body never reaches the agent.
     if (ctx?.isIdle?.() === false) {
-      pi.sendUserMessage(message, { deliverAs: "followUp" });
+      pi.sendUserMessage(message, { expandPromptTemplates: true, deliverAs: "followUp" });
       ctx?.ui?.notify?.(`${skillName} queued as follow-up.`, "info");
       return;
     }
 
-    pi.sendUserMessage(message);
+    pi.sendUserMessage(message, { expandPromptTemplates: true });
   };
 
   pi.registerCommand("panda", {
-    description: PONYTAIL_COMMAND_DESCRIPTION,
+    description: PANDA_COMMAND_DESCRIPTION,
+    getArgumentCompletions: (prefix) => completePonytailArgs(prefix),
     handler: async (args, ctx) => {
-      const parsed = parsePonytailCommand(args, configuredDefaultMode);
+      const parsed = parsePonytailCommand(args, configuredDefaultMode, currentMode);
 
       if (parsed.type === "status") {
         ctx?.ui?.notify?.(`Panda: current ${currentMode} • default ${configuredDefaultMode}`, "info");
@@ -148,48 +161,60 @@ export default function ponytailExtension(pi) {
 
   pi.registerCommand("panda-review", {
     description: "Run /skill:panda-review",
-    handler: (_args, ctx) => sendAlias("/skill:panda-review", "", ctx),
+    handler: (args, ctx) => sendAlias("/skill:panda-review", args, ctx),
   });
 
   pi.registerCommand("panda-audit", {
     description: "Run /skill:panda-audit",
-    handler: (_args, ctx) => sendAlias("/skill:panda-audit", "", ctx),
+    handler: (args, ctx) => sendAlias("/skill:panda-audit", args, ctx),
   });
 
   pi.registerCommand("panda-gain", {
     description: "Run /skill:panda-gain",
-    handler: (_args, ctx) => sendAlias("/skill:panda-gain", "", ctx),
+    handler: (args, ctx) => sendAlias("/skill:panda-gain", args, ctx),
   });
 
   pi.registerCommand("panda-debt", {
     description: "Run /skill:panda-debt",
-    handler: (_args, ctx) => sendAlias("/skill:panda-debt", "", ctx),
+    handler: (args, ctx) => sendAlias("/skill:panda-debt", args, ctx),
   });
 
   pi.registerCommand("panda-help", {
     description: "Run /skill:panda-help",
-    handler: (_args, ctx) => sendAlias("/skill:panda-help", "", ctx),
+    handler: (args, ctx) => sendAlias("/skill:panda-help", args, ctx),
   });
 
-  pi.on("input", async (event) => {
+  pi.on("input", async (event, ctx) => {
     if (event?.source === "extension") return;
 
     const text = String(event?.text || "");
     if (currentMode !== "off" && isDeactivationCommand(text)) {
-      setMode("off");
+      setMode("off", ctx);
     }
   });
 
-  pi.on("session_start", async (_event, ctx) => {
+  const restoreSessionMode = (ctx) => {
     const entries = ctx?.sessionManager?.getBranch?.() || ctx?.sessionManager?.getEntries?.() || [];
-    configuredDefaultMode = getDefaultMode();
-    hideStatus = getHideStatus();
     currentMode = resolveSessionMode(entries, configuredDefaultMode);
     syncStatus(ctx);
+  };
+
+  pi.on("session_start", async (_event, ctx) => {
+    configuredDefaultMode = getDefaultMode();
+    hideStatus = getHideStatus();
+    restoreSessionMode(ctx);
     if (!getQuietStartup()) {
       ctx?.ui?.notify?.(`Panda loaded: ${currentMode}`, "info");
     }
   });
+
+  // Both hosts emit session_tree. Pi re-emits session_start on /new, /resume and
+  // /fork; OMP emits session_switch and session_branch instead.
+  for (const eventName of ["session_tree", "session_switch", "session_branch"]) {
+    pi.on(eventName, async (_event, ctx) => {
+      restoreSessionMode(ctx);
+    });
+  }
 
   pi.on("agent_start", async (_event, ctx) => {
     isActive = true;
@@ -202,10 +227,27 @@ export default function ponytailExtension(pi) {
   });
 
   pi.on("before_agent_start", async (event) => {
-    if (!currentMode || currentMode === "off") return;
+    if (!currentMode || currentMode === "off") {
+      // Clear a stale section when the mode is off so a previous turn does not linger (#953).
+      if (event?.systemPromptOptions?.sections) delete event.systemPromptOptions.sections.panda;
+      return;
+    }
+    const instructions = getPonytailInstructions(currentMode);
+    // Prefer structured sections so Pi can keep the cached prefix when other
+    // extensions change their own section (#953). Fall back to replacement
+    // for older Pi versions without systemPromptOptions.sections.
+    const sections = event?.systemPromptOptions?.sections;
+    if (sections && typeof sections === "object") {
+      sections.panda = instructions;
+      return;
+    }
+    // OMP passes the system prompt as an array of parts; keep it one (#776).
+    if (Array.isArray(event?.systemPrompt)) {
+      return { systemPrompt: [...event.systemPrompt, instructions] };
+    }
     // Guard a null/undefined event or a missing systemPrompt: don't crash, and
     // don't prepend the literal string "undefined" to the prompt (#439, #440).
     const base = event?.systemPrompt ? `${event.systemPrompt}\n\n` : "";
-    return { systemPrompt: `${base}${getPonytailInstructions(currentMode)}` };
+    return { systemPrompt: `${base}${instructions}` };
   });
 }

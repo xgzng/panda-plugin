@@ -43,8 +43,8 @@ for (const [relPath, normalize] of copies) {
 // Upgrade path: generate the copies from SKILL.md if this ever misses a real drift.
 const INVARIANTS = [
   ['in this codebase', '代码库里已经有了吗'],
-  ['naive heuristic', '`panda:` 注释说明上限和升级条件'],
-  ['ONE runnable check', '没有验证的非平凡代码不算完成'],
+  ['shortcut: <limit>, <upgrade condition>', 'shortcut: <上限>, <升级条件>'],
+  ['there is no one-test ceiling', '不限制为一个测试'],
   ['flimsier algorithm', '更脆弱的算法'],
   // the four "not lazy about" safety carve-outs: pin each so a reword in either
   // file can't silently drop one. Only validation was pinned before. These are the
@@ -55,6 +55,7 @@ const INVARIANTS = [
   ['security', '安全'],
   ['accessibility', '无障碍'],
   ['Lazy code without its check is unfinished', '没有验证的非平凡代码不算完成'],
+  ['Every change must serve the request, a necessary call chain or required verification.', '每一处改动都必须能够追溯到用户需求、必要的受影响调用链或必要验证。'],
   ['Before choosing an implementation or editing files, check the current repository and target-file scope for applicable project-instruction entry points', '在选择实现或编辑文件前，检查当前仓库及目标文件作用域内适用的项目规则入口'],
   ['If none exist, continue with company and Panda rules; do not recursively scan arbitrary rule directories.', '未发现入口时，继续执行公司规则和 Panda 规则；不要递归扫描任意规则目录。'],
   ['Preserve required transactions, idempotency, concurrency controls, compatibility, logs, monitoring, and tests.', '保留需求所需的事务、幂等、并发控制、兼容性、日志、监控和测试。'],

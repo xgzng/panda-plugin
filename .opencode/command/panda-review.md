@@ -1,5 +1,5 @@
 ---
-description: Review changes for over-engineering, what can be deleted
+description: Review changes for correctness, safety, load, tests, speed and unnecessary complexity
 ---
 
-Review the current code changes for over-engineering only, not correctness. One line per finding: L<line>: <tag> <what to cut>. <replacement>. Tags: delete (dead code/speculative feature), stdlib (reinvented standard library), native (dependency doing what the platform does), yagni (abstraction with one implementation), shrink (same logic, fewer lines). End with the net lines removable. If nothing to cut: 'Lean already. Ship.'
+Load and follow skills/panda-review/SKILL.md. Read the requested diff and connected callers, tests and project rules. Review correctness, security and data safety, expected load, necessary tests, speed, unnecessary complexity, and unrelated changes in that order. Each finding needs a concrete failure case and the smallest compliant fix. Respect company boundaries, project architecture, and deliberate shortcut: / panda: / ponytail: comments with a justified limit. Report numbered findings and verification limits; change no code and do not change the active Panda mode.
